@@ -1,0 +1,45 @@
+@model StaffCreateViewModel
+@{
+    ViewData["Title"] = "Yangi xodim";
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Yangi xodim qo'shish</h2>
+</div>
+
+<div class="form-card">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="form-grid">
+            <div class="form-group">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-input" placeholder="To'liq F.I.O" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Position" class="form-label"></label>
+                <input asp-for="Position" class="form-input" placeholder="Lavozim nomi" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Department" class="form-label"></label>
+                <select asp-for="Department" asp-items="Html.GetEnumSelectList<Department>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Shift" class="form-label"></label>
+                <select asp-for="Shift" asp-items="Html.GetEnumSelectList<ShiftType>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Phone" class="form-label"></label>
+                <input asp-for="Phone" class="form-input" placeholder="+998 XX XXX XX XX" />
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessLevel" class="form-label"></label>
+                <select asp-for="AccessLevel" asp-items="Html.GetEnumSelectList<AccessLevel>()" class="form-select"></select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+        </div>
+    </form>
+</div>

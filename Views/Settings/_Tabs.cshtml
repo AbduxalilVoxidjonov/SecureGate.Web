@@ -1,0 +1,96 @@
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    string Cls(string name) => action.Equals(name, StringComparison.OrdinalIgnoreCase) ? "settings-tab active" : "settings-tab";
+}
+
+<style>
+    .settings-tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 24px;
+        overflow-x: auto;
+    }
+    .settings-tab {
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #64748b;
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+        transition: color 0.15s, border-color 0.15s;
+    }
+    .settings-tab:hover {
+        color: #0f172a;
+    }
+    .settings-tab.active {
+        color: #2563eb;
+        border-bottom-color: #2563eb;
+    }
+    .settings-section {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    .settings-section h3 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        color: #0f172a;
+    }
+    .settings-section .section-desc {
+        margin: 0 0 18px;
+        font-size: 13px;
+        color: #64748b;
+    }
+    .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-row-info { flex: 1; }
+    .toggle-row-info .name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #0f172a;
+    }
+    .toggle-row-info .desc {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+    .code-block {
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 14px 16px;
+        border-radius: 8px;
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 13px;
+        overflow-x: auto;
+        white-space: pre;
+    }
+    .api-key-display {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-family: 'Consolas', monospace;
+        font-size: 13px;
+    }
+    .api-key-display code { flex: 1; word-break: break-all; }
+</style>
+
+<div class="settings-tabs">
+    <a asp-action="Notifications" class="@Cls("Notifications")">🔔 Bildirishnomalar</a>
+    <a asp-action="Integrations" class="@Cls("Integrations")">🔌 Integratsiyalar</a>
+    <a asp-action="Api" class="@Cls("Api")">🔑 API va Webhook</a>
+    <a asp-action="Documentation" class="@Cls("Documentation")">📖 Dokumentatsiya</a>
+</div>

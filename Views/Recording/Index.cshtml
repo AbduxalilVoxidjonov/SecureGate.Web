@@ -1,0 +1,44 @@
+@model List<Camera>
+@{
+    ViewData["Title"] = "Yozuvlar arxivi";
+}
+
+<div class="page-header"><h2>Yozuvlar arxivi</h2></div>
+
+<div class="info-banner">
+    <span>💾</span>
+    <span>Barcha yozuvlar 30 kun saqlanadi. Sozlamalardan o'zgartirish mumkin.</span>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Kamera</th>
+                <th>Holat</th>
+                <th>Sifat</th>
+                <th>24/7 yozish</th>
+                <th>Harakat aniqlash</th>
+                <th>Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cam in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <span class="camera-code">@cam.CameraCode</span>
+                            <span>@cam.Name</span>
+                        </div>
+                    </td>
+                    <td><span class="status-badge @(cam.Status == CameraStatus.Online ? "status-active" : "status-blocked")">@cam.Status.GetDisplayName()</span></td>
+                    <td>@cam.Quality.GetDisplayName()</td>
+                    <td><span class="toggle-indicator @(cam.ContinuousRecording ? "on" : "off")">@(cam.ContinuousRecording ? "✓" : "✕")</span></td>
+                    <td><span class="toggle-indicator @(cam.MotionDetection ? "on" : "off")">@(cam.MotionDetection ? "✓" : "✕")</span></td>
+                    <td><button class="btn btn-sm btn-secondary" disabled>📂 Arxivni ko'rish</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

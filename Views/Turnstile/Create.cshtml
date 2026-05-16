@@ -1,0 +1,79 @@
+@model TurnstileCreateViewModel
+@{
+    ViewData["Title"] = "Yangi turniket";
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Yangi turniket qo'shish</h2>
+</div>
+
+<div class="form-card">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="form-grid">
+            <div class="form-group">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-input" placeholder="Asosiy kirish — chap" />
+                <span asp-validation-for="Name" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Location" class="form-label"></label>
+                <input asp-for="Location" class="form-input" placeholder="1-qavat, janubiy darvoza" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Model" class="form-label"></label>
+                <select asp-for="Model" asp-items="Html.GetEnumSelectList<TurnstileModel>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Type" class="form-label"></label>
+                <select asp-for="Type" asp-items="Html.GetEnumSelectList<TurnstileType>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Direction" class="form-label"></label>
+                <select asp-for="Direction" asp-items="Html.GetEnumSelectList<TurnstileDirection>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="IpAddress" class="form-label"></label>
+                <input asp-for="IpAddress" class="form-input" placeholder="192.168.2.XX" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Port" class="form-label"></label>
+                <input asp-for="Port" type="number" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label asp-for="LinkedCameraId" class="form-label"></label>
+                <select asp-for="LinkedCameraId" class="form-select">
+                    <option value="">Kamera tanlang</option>
+                    @foreach (var c in Model.AvailableCameras)
+                    {
+                        <option value="@c.Id">@c.CameraCode — @c.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="form-switches">
+            <label class="switch-label">
+                <input asp-for="FaceRecognitionEnabled" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>Yuz tanish</span>
+            </label>
+            <label class="switch-label">
+                <input asp-for="RfidEnabled" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>RFID karta</span>
+            </label>
+            <label class="switch-label">
+                <input asp-for="QrCodeEnabled" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>QR kod</span>
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+        </div>
+    </form>
+</div>

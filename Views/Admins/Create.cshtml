@@ -1,0 +1,49 @@
+@model AdminCreateViewModel
+@{
+    ViewData["Title"] = "Yangi admin";
+}
+
+<div class="page-header">
+    <h2>Yangi admin yaratish</h2>
+</div>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="card" style="padding:20px; margin-bottom:20px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label asp-for="FullName"></label>
+                <input asp-for="FullName" class="form-input" />
+                <span asp-validation-for="FullName" class="field-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-input" />
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" class="form-input" type="password" />
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ConfirmPassword"></label>
+                <input asp-for="ConfirmPassword" class="form-input" type="password" />
+                <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="margin: 24px 0 12px;">Ruxsatlar</h3>
+    <p style="color:#64748b; font-size:13px; margin-bottom:16px;">
+        Bu admin qaysi bo'limlarga kira olishini va qanday amallarni bajara olishini belgilang.
+    </p>
+
+    @await Html.PartialAsync("_PermissionPicker", Model.SelectedPermissions)
+
+    <div style="margin-top:24px; display:flex; gap:12px;">
+        <button type="submit" class="btn btn-primary">Yaratish</button>
+        <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
+    </div>
+</form>

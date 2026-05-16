@@ -1,0 +1,103 @@
+@model TurnstileDetailViewModel
+@{
+    ViewData["Title"] = Model.Turnstile.Name;
+    var t = Model.Turnstile;
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>@t.Name</h2>
+    <span class="status-badge @(t.Status == TurnstileStatus.Online ? "status-active" : t.Status == TurnstileStatus.Blocked ? "status-blocked" : "status-archived")">
+        @t.Status.GetDisplayName()
+    </span>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <h4>Qurilma ma'lumotlari</h4>
+        <div class="detail-row"><span class="detail-label">Model:</span><span>@t.Model.GetDisplayName()</span></div>
+        <div class="detail-row"><span class="detail-label">Tur:</span><span>@t.Type.GetDisplayName()</span></div>
+        <div class="detail-row"><span class="detail-label">Yo'nalish:</span><span>@t.Direction.GetDisplayName()</span></div>
+        <div class="detail-row"><span class="detail-label">Joylashuv:</span><span>@(t.Location ?? "—")</span></div>
+        <div class="detail-row"><span class="detail-label">IP manzil:</span><span>@t.IpAddress:@t.Port</span></div>
+        <div class="detail-row"><span class="detail-label">Biriktirilgan kamera:</span><span>@(t.LinkedCamera?.Name ?? "—")</span></div>
+    </div>
+
+    <div class="detail-card">
+        <h4>Bugungi statistika</h4>
+        <div class="stats-grid stats-grid-sm">
+            <div class="stat-card stat-card-sm">
+                <span class="stat-value text-green">@t.TodayPassCount</span>
+                <span class="stat-label">O'tishlar</span>
+            </div>
+            <div class="stat-card stat-card-sm">
+                <span class="stat-value text-red">@t.TodayDenyCount</span>
+                <span class="stat-label">Rad etilgan</span>
+            </div>
+        </div>
+        <div class="turnstile-features" style="margin-top:16px">
+            @if (t.FaceRecognitionEnabled) { <span class="feature-badge">🤖 Yuz tanish</span> }
+            @if (t.RfidEnabled) { <span class="feature-badge">💳 RFID karta</span> }
+            @if (t.QrCodeEnabled) { <span class="feature-badge">📱 QR kod</span> }
+        </div>
+    </div>
+
+    <div class="detail-card card-wide">
+        <h4>Soatlik o'tishlar</h4>
+        <canvas id="turnstileChart" height="200"></canvas>
+    </div>
+
+    <div class="detail-card card-wide">
+        <h4>So'nggi o'tishlar</h4>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Vaqt</th><th>Foydalanuvchi</th><th>Usul</th><th>Natija</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model.RecentLogs)
+                    {
+                        <tr>
+                            <td>@log.Timestamp.ToString("HH:mm:ss")</td>
+                            <td>@log.UserName</td>
+                            <td>@log.Method.GetDisplayName()</td>
+                            <td><span class="result-badge result-@log.Result.ToString().ToLower()">@log.Result.GetDisplayName()</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="form-actions">
+    @if (t.Status == TurnstileStatus.Online)
+    {
+        <button class="btn btn-warning" onclick="closeTurnstile(@t.Id)">⏸ Yopish</button>
+        <button class="btn btn-danger" onclick="blockTurnstile(@t.Id)">🔒 Bloklash</button>
+    }
+    else if (t.Status == TurnstileStatus.Offline)
+    {
+        <button class="btn btn-success" onclick="openTurnstile(@t.Id)">▶ Ochish</button>
+    }
+    else
+    {
+        <button class="btn btn-success" onclick="unblockTurnstile(@t.Id)">🔓 Blokdan chiqarish</button>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/turnstile.js"></script>
+    <script>
+        const hourlyData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.HourlyData));
+        const ctx = document.getElementById('turnstileChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length:24}, (_,i) => `${i}:00`),
+                datasets: [{ label: "O'tishlar", data: hourlyData, borderColor: '#3b82f6', backgroundColor: '#3b82f620', fill: true, tension: 0.4 }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+    </script>
+}

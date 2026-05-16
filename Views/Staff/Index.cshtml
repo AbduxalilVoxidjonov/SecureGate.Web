@@ -1,0 +1,55 @@
+@model List<Staff>
+@{
+    ViewData["Title"] = "Xodimlar";
+}
+
+<div class="page-header">
+    <h2>Xodimlar</h2>
+    <a asp-action="Create" class="btn btn-primary">+ Yangi xodim</a>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>F.I.O</th>
+                <th>Lavozim</th>
+                <th>Bo'lim</th>
+                <th>Smena</th>
+                <th>Kirish darajasi</th>
+                <th>Holat</th>
+                <th>Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar-sm">@s.Initials</div>
+                            <span>@s.FullName</span>
+                        </div>
+                    </td>
+                    <td>@s.Position</td>
+                    <td>@s.Department.GetDisplayName()</td>
+                    <td>@s.Shift.GetDisplayName()</td>
+                    <td>
+                        <span class="access-badge access-@s.AccessLevel.ToString().ToLower()">@s.AccessLevel.GetDisplayName()</span>
+                    </td>
+                    <td>
+                        <span class="status-badge @(s.Status == StaffStatus.Active ? "status-active" : "status-blocked")">@s.Status.GetDisplayName()</span>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <form asp-action="Delete" asp-route-id="@s.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-icon btn-danger-icon" onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

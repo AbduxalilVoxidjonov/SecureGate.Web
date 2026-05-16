@@ -1,0 +1,51 @@
+@model FaceRecognitionViewModel
+@{
+    ViewData["Title"] = "Yuz tanish";
+}
+
+<div class="page-header">
+    <h2>Yuz tanish tizimi</h2>
+    <span class="badge badge-live">● FAOL</span>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon stat-icon-blue">🤖</div><div class="stat-info"><span class="stat-value">@Model.TotalFaces</span><span class="stat-label">Ro'yxatdagi yuzlar</span></div></div>
+    <div class="stat-card"><div class="stat-icon stat-icon-green">✓</div><div class="stat-info"><span class="stat-value">@Model.TodayRecognized</span><span class="stat-label">Bugun tanilgan</span></div></div>
+    <div class="stat-card"><div class="stat-icon stat-icon-red">❓</div><div class="stat-info"><span class="stat-value">@Model.UnknownFaces</span><span class="stat-label">Noma'lum yuzlar</span></div></div>
+    <div class="stat-card"><div class="stat-icon stat-icon-purple">⚡</div><div class="stat-info"><span class="stat-value">@(Model.AverageRecognitionTime)s</span><span class="stat-label">O'rtacha vaqt</span></div></div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card card-wide">
+        <div class="card-header"><h3>So'nggi aniqlashlar</h3></div>
+        <div class="card-body">
+            <div class="activity-feed">
+                @foreach (var d in Model.RecentDetections)
+                {
+                    <div class="activity-item @(d.IsUnknown ? "activity-warn" : "activity-good")">
+                        <div class="activity-dot"></div>
+                        <div class="activity-info">
+                            <span class="activity-name">@d.Name</span>
+                            <span class="activity-action">@d.Role · @(d.Confidence > 0 ? $"{d.Confidence:F1}%" : "—")</span>
+                        </div>
+                        <span class="activity-time">@d.Time</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3>AI kameralar</h3></div>
+        <div class="card-body">
+            @foreach (var cam in Model.ActiveCameras)
+            {
+                <div class="detail-row">
+                    <span>📹 @cam.Name</span>
+                    <span class="status-badge status-active">AI ON</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

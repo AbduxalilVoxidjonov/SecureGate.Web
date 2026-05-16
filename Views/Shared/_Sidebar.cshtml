@@ -1,0 +1,130 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string Active(string name) => controller.Equals(name, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    bool Can(Permission p) => User.HasPermission(p, PermissionService);
+    bool isSuper = User.IsSuperAdmin();
+
+    bool showUsersSection = Can(Permission.UsersView) || Can(Permission.StaffView);
+    bool showSecuritySection = Can(Permission.FaceRecognitionManage) || Can(Permission.RecordingsView)
+                               || Can(Permission.AccessLogsView) || Can(Permission.BlockedManage);
+    bool showSystemSection = Can(Permission.ReportsView) || Can(Permission.SettingsManage) || isSuper;
+}
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <div class="logo-icon">🛡️</div>
+            <div class="logo-text">
+                <span class="logo-title">SecureGate</span>
+                <span class="logo-subtitle">Kirish nazorati</span>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <div class="nav-section-title">ASOSIY</div>
+            <a asp-controller="Home" asp-action="Index" class="nav-item @Active("Home")">
+                <span class="nav-text">Dashboard</span>
+            </a>
+            @if (Can(Permission.CameraView))
+            {
+                <a asp-controller="Camera" asp-action="Index" class="nav-item @Active("Camera")">
+                    <span class="nav-text">Kameralar</span>
+                </a>
+                <a asp-controller="CameraGroups" asp-action="Index" class="nav-item @Active("CameraGroups")">
+                    <span class="nav-text">Kamera guruhlari</span>
+                </a>
+            }
+            @if (Can(Permission.TurnstileView))
+            {
+                <a asp-controller="Turnstile" asp-action="Index" class="nav-item @Active("Turnstile")">
+                    <span class="nav-text">Turniketlar</span>
+                </a>
+            }
+        </div>
+
+        @if (showUsersSection)
+        {
+            <div class="nav-section">
+                <div class="nav-section-title">FOYDALANUVCHILAR</div>
+                @if (Can(Permission.UsersView))
+                {
+                    <a asp-controller="Users" asp-action="Index" class="nav-item @Active("Users")">
+                        <span class="nav-text">Foydalanuvchilar</span>
+                    </a>
+                }
+                @if (Can(Permission.StaffView))
+                {
+                    <a asp-controller="Staff" asp-action="Index" class="nav-item @Active("Staff")">
+                        <span class="nav-text">Xodimlar</span>
+                    </a>
+                }
+            </div>
+        }
+
+        @if (showSecuritySection)
+        {
+            <div class="nav-section">
+                <div class="nav-section-title">XAVFSIZLIK</div>
+                @if (Can(Permission.FaceRecognitionManage))
+                {
+                    <a asp-controller="FaceRecognition" asp-action="Index" class="nav-item @Active("FaceRecognition")">
+                        <span class="nav-text">Yuz tanish</span>
+                    </a>
+                }
+                @if (Can(Permission.RecordingsView))
+                {
+                    <a asp-controller="Recording" asp-action="Index" class="nav-item @Active("Recording")">
+                        <span class="nav-text">Yozuvlar arxivi</span>
+                    </a>
+                }
+                @if (Can(Permission.AccessLogsView))
+                {
+                    <a asp-controller="AccessLog" asp-action="Index" class="nav-item @Active("AccessLog")">
+                        <span class="nav-text">Kirish jurnali</span>
+                    </a>
+                }
+                @if (Can(Permission.BlockedManage))
+                {
+                    <a asp-controller="Blocked" asp-action="Index" class="nav-item @Active("Blocked")">
+                        <span class="nav-text">Bloklanganlar</span>
+                    </a>
+                }
+            </div>
+        }
+
+        @if (showSystemSection)
+        {
+            <div class="nav-section">
+                <div class="nav-section-title">TIZIM</div>
+                @if (Can(Permission.ReportsView))
+                {
+                    <a asp-controller="Report" asp-action="Index" class="nav-item @Active("Report")">
+                        <span class="nav-text">Hisobotlar</span>
+                    </a>
+                }
+                @if (Can(Permission.SettingsManage))
+                {
+                    <a asp-controller="Settings" asp-action="Index" class="nav-item @Active("Settings")">
+                        <span class="nav-text">Sozlamalar</span>
+                    </a>
+                }
+                @if (isSuper)
+                {
+                    <a asp-controller="Admins" asp-action="Index" class="nav-item @Active("Admins")">
+                        <span class="nav-text">Adminlar</span>
+                    </a>
+                }
+            </div>
+        }
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="connection-status" id="signalr-status">
+            <span class="status-dot status-online"></span>
+            <span>Ulanish: Faol</span>
+        </div>
+    </div>
+</aside>

@@ -1,0 +1,83 @@
+@model AccessLogIndexViewModel
+@{
+    ViewData["Title"] = "Kirish jurnali";
+}
+
+<div class="page-header">
+    <h2>Kirish jurnali</h2>
+    <span class="badge">@Model.TotalCount ta yozuv</span>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <input type="text" name="search" value="@Model.SearchTerm" placeholder="Ism bo'yicha qidirish..." class="form-input" />
+        <select name="result" class="form-select">
+            <option value="">Barcha natijalar</option>
+            <option value="@AccessResult.Granted" selected="@(Model.ResultFilter == AccessResult.Granted)">Muvaffaqiyatli</option>
+            <option value="@AccessResult.Denied" selected="@(Model.ResultFilter == AccessResult.Denied)">Rad etildi</option>
+            <option value="@AccessResult.Unknown" selected="@(Model.ResultFilter == AccessResult.Unknown)">Noma'lum</option>
+        </select>
+        <select name="method" class="form-select">
+            <option value="">Barcha usullar</option>
+            <option value="@AccessMethod.Face" selected="@(Model.MethodFilter == AccessMethod.Face)">Yuz</option>
+            <option value="@AccessMethod.Card" selected="@(Model.MethodFilter == AccessMethod.Card)">Karta</option>
+            <option value="@AccessMethod.QrCode" selected="@(Model.MethodFilter == AccessMethod.QrCode)">QR kod</option>
+        </select>
+        <select name="turnstileId" class="form-select">
+            <option value="">Barcha turniketlar</option>
+            @foreach (var t in Model.Turnstiles) { <option value="@t.Id" selected="@(Model.TurnstileId == t.Id)">@t.Name</option> }
+        </select>
+        <input type="date" name="dateFrom" value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))" class="form-input" />
+        <input type="date" name="dateTo" value="@(Model.DateTo?.ToString("yyyy-MM-dd"))" class="form-input" />
+        <button type="submit" class="btn btn-secondary">Filtr</button>
+    </form>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Vaqt</th>
+                <th>Foydalanuvchi</th>
+                <th>Tur</th>
+                <th>Usul</th>
+                <th>Turniket</th>
+                <th>Natija</th>
+                <th>Aniqlik</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var log in Model.Logs)
+            {
+                <tr class="@(log.Result == AccessResult.Denied ? "row-denied" : log.Result == AccessResult.Unknown ? "row-unknown" : "")">
+                    <td>@log.Timestamp.ToString("dd.MM HH:mm:ss")</td>
+                    <td>@log.UserName</td>
+                    <td>@log.UserType</td>
+                    <td>
+                        <span class="method-badge">
+                            @(log.Method == AccessMethod.Face ? "🤖 Yuz" : log.Method == AccessMethod.Card ? "💳 Karta" : log.Method == AccessMethod.QrCode ? "📱 QR" : "✋ Manual")
+                        </span>
+                    </td>
+                    <td>@(log.Turnstile?.Name ?? "—")</td>
+                    <td>
+                        <span class="result-badge result-@log.Result.ToString().ToLower()">
+                            @log.Result.GetDisplayName()
+                        </span>
+                    </td>
+                    <td>@(log.FaceConfidence.HasValue ? $"{log.FaceConfidence:F1}%" : "—")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="pagination">
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <a asp-action="Index" asp-route-page="@i" asp-route-search="@Model.SearchTerm" asp-route-result="@Model.ResultFilter"
+               class="page-btn @(i == Model.CurrentPage ? "active" : "")">@i</a>
+        }
+    </div>
+}

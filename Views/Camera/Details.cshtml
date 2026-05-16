@@ -1,0 +1,58 @@
+@model Camera
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>@Model.CameraCode — @Model.Name</h2>
+    <span class="status-badge @(Model.Status == CameraStatus.Online ? "status-active" : "status-blocked")">
+        @Model.Status.GetDisplayName()
+    </span>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card card-wide">
+        <div class="camera-preview camera-preview-lg">
+            <div class="camera-placeholder">
+                @if (Model.Status == CameraStatus.Online)
+                {
+                    <span class="camera-live-badge">● LIVE</span>
+                    <span style="font-size: 48px">📹</span>
+                    <span>@Model.CameraCode — @Model.Quality.GetDisplayName()</span>
+                }
+                else
+                {
+                    <span class="camera-offline-badge">OFLAYN</span>
+                    <span style="font-size: 48px">📹</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <h4>Kamera ma'lumotlari</h4>
+        <div class="detail-row"><span class="detail-label">Model:</span><span>@Model.CameraModel</span></div>
+        <div class="detail-row"><span class="detail-label">Protokol:</span><span>@Model.Protocol</span></div>
+        <div class="detail-row"><span class="detail-label">Sifat:</span><span>@Model.Quality.GetDisplayName()</span></div>
+        <div class="detail-row"><span class="detail-label">FPS:</span><span>@Model.Fps</span></div>
+        <div class="detail-row"><span class="detail-label">IP manzil:</span><span>@Model.IpAddress:@Model.Port</span></div>
+        <div class="detail-row"><span class="detail-label">Guruh:</span><span>@(Model.CameraGroup?.Name ?? "—")</span></div>
+    </div>
+
+    <div class="detail-card">
+        <h4>Funksiyalar</h4>
+        <div class="detail-row">
+            <span class="detail-label">Yuz tanish:</span>
+            <span class="toggle-indicator @(Model.FaceRecognitionEnabled ? "on" : "off")">@(Model.FaceRecognitionEnabled ? "Yoqilgan" : "O'chirilgan")</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">24/7 yozib olish:</span>
+            <span class="toggle-indicator @(Model.ContinuousRecording ? "on" : "off")">@(Model.ContinuousRecording ? "Yoqilgan" : "O'chirilgan")</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Harakat aniqlash:</span>
+            <span class="toggle-indicator @(Model.MotionDetection ? "on" : "off")">@(Model.MotionDetection ? "Yoqilgan" : "O'chirilgan")</span>
+        </div>
+    </div>
+</div>

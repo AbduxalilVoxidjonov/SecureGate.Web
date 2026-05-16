@@ -1,0 +1,37 @@
+@model ReportViewModel
+@{
+    ViewData["Title"] = "Hisobotlar";
+}
+
+<div class="page-header"><h2>Haftalik hisobot</h2></div>
+
+<div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon stat-icon-blue">📊</div><div class="stat-info"><span class="stat-value">@Model.WeeklyPassCount</span><span class="stat-label">Haftalik o'tishlar</span></div></div>
+    <div class="stat-card"><div class="stat-icon stat-icon-green">📈</div><div class="stat-info"><span class="stat-value">@(Model.AverageAttendance)%</span><span class="stat-label">O'rtacha davomat</span></div></div>
+    <div class="stat-card"><div class="stat-icon stat-icon-yellow">⏰</div><div class="stat-info"><span class="stat-value">@Model.LateArrivals</span><span class="stat-label">Kechikishlar</span></div></div>
+    <div class="stat-card"><div class="stat-icon stat-icon-red">🚫</div><div class="stat-info"><span class="stat-value">@Model.DeniedCount</span><span class="stat-label">Rad etilgan</span></div></div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card" style="max-width:640px;">
+        <div class="card-header"><h3>Haftalik o'tishlar</h3></div>
+        <div class="card-body" style="height:240px; position:relative;">
+            <canvas id="weeklyChart"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const weeklyData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeeklyData));
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'],
+                datasets: [{ label: "O'tishlar", data: weeklyData, backgroundColor: '#3b82f680', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 6 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+    </script>
+}

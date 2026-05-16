@@ -1,0 +1,42 @@
+@{
+    var pageTitle = ViewData["Title"]?.ToString() ?? "Dashboard";
+    var currentName = User?.Identity?.Name ?? "Mehmon";
+    var isSuper = User?.IsSuperAdmin() ?? false;
+    var initials = "AD";
+    if (!string.IsNullOrEmpty(currentName))
+    {
+        var atIdx = currentName.IndexOf('@');
+        var baseName = atIdx > 0 ? currentName.Substring(0, atIdx) : currentName;
+        initials = baseName.Length >= 2 ? baseName.Substring(0, 2).ToUpper() : baseName.ToUpper();
+    }
+}
+
+<header class="topbar">
+    <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('collapsed')">☰</button>
+        <h1 class="page-title">@pageTitle</h1>
+    </div>
+    <div class="topbar-right">
+        <div class="topbar-search">
+            <input type="text" placeholder="Qidirish..." class="search-input" id="globalSearch" />
+        </div>
+        <div class="topbar-actions">
+            <button class="topbar-btn" id="alertBtn" title="Ogohlantirishlar">
+                🔔 <span class="badge" id="alertBadge">0</span>
+            </button>
+            <div class="topbar-user" style="position:relative;">
+                <div class="user-avatar">@initials</div>
+                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                    <span class="user-name">@currentName</span>
+                    <span style="font-size:11px; color:#94a3b8;">@(isSuper ? "SuperAdmin" : "Admin")</span>
+                </div>
+                <form asp-controller="Account" asp-action="Logout" method="post" style="margin-left:12px;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="topbar-btn" title="Chiqish" style="background:transparent; border:none; cursor:pointer; font-size:18px;">
+                        ⎋
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>

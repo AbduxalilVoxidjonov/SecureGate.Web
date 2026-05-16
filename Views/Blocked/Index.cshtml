@@ -1,0 +1,58 @@
+@model UsersListViewModel
+@{
+    ViewData["Title"] = "Bloklanganlar";
+}
+
+<div class="page-header">
+    <h2>Bloklangan foydalanuvchilar</h2>
+    <span class="badge badge-danger">@Model.TotalCount ta</span>
+</div>
+
+@if (Model.Students.Any())
+{
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>F.I.O</th>
+                    <th>Guruh</th>
+                    <th>Sabab</th>
+                    <th>Bloklangan sana</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.Students)
+                {
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar-sm user-avatar-blocked">@s.Initials</div>
+                                <div>
+                                    <div class="user-name-cell">@s.FullName</div>
+                                    <div class="user-sub">#@s.StudentId</div>
+                                </div>
+                            </div>
+                        </td>
+                                                <td>@(s.BlockedUser?.Reason ?? "Noma'lum")</td>
+                        <td>@(s.BlockedUser?.BlockedAt.ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
+                        <td>
+                            <form asp-controller="Student" asp-action="Unblock" asp-route-id="@s.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-success">🔓 Blokdan chiqarish</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="empty-state">
+        <span style="font-size: 48px">✅</span>
+        <h3>Bloklangan foydalanuvchilar yo'q</h3>
+        <p class="text-muted">Barcha foydalanuvchilar faol holatda</p>
+    </div>
+}

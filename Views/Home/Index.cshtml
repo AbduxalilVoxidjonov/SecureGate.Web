@@ -1,0 +1,123 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="dashboard">
+    <!-- Statistika kartochkalari -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-blue">🎓</div>
+            <div class="stat-info">
+                <span class="stat-value">@Model.ActiveStudentCount</span>
+                <span class="stat-label">Faol o'quvchilar</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-green">🚪</div>
+            <div class="stat-info">
+                <span class="stat-value" id="todayPassCount">@Model.TodayPassCount</span>
+                <span class="stat-label">Bugungi o'tishlar</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-purple">📹</div>
+            <div class="stat-info">
+                <span class="stat-value">@Model.ActiveCameraCount / @Model.TotalCameraCount</span>
+                <span class="stat-label">Faol kameralar</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-red">🔔</div>
+            <div class="stat-info">
+                <span class="stat-value" id="alertCount">@Model.NewAlertCount</span>
+                <span class="stat-label">Yangi ogohlantirishlar</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Soatlik grafik -->
+        <div class="card card-wide">
+            <div class="card-header">
+                <h3>Bugungi o'tishlar (soatlik)</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="hourlyChart" height="250"></canvas>
+            </div>
+        </div>
+
+        <!-- Jonli faollik -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Jonli faollik</h3>
+                <span class="badge badge-live">● LIVE</span>
+            </div>
+            <div class="card-body">
+                <div class="activity-feed" id="activityFeed">
+                    @foreach (var item in Model.RecentActivity)
+                    {
+                        <div class="activity-item activity-@item.Type">
+                            <div class="activity-dot"></div>
+                            <div class="activity-info">
+                                <span class="activity-name">@item.UserName</span>
+                                <span class="activity-action">@item.Action</span>
+                            </div>
+                            <span class="activity-time">@item.Time</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Mashhur turniketlar -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Eng faol turniketlar</h3>
+            </div>
+            <div class="card-body">
+                @foreach (var t in Model.PopularTurnstiles)
+                {
+                    <div class="turnstile-stat">
+                        <div class="turnstile-stat-info">
+                            <span>@t.Name</span>
+                            <span>@t.Count o'tish</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @(t.Percentage)%"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Ogohlantirishlar -->
+        <div class="card">
+            <div class="card-header">
+                <h3>So'nggi ogohlantirishlar</h3>
+            </div>
+            <div class="card-body">
+                @foreach (var alert in Model.RecentAlerts)
+                {
+                    <div class="alert-item alert-@alert.Type.ToString().ToLower()">
+                        <div class="alert-icon">
+                            @(alert.Type == AlertType.Danger ? "🔴" : alert.Type == AlertType.Warning ? "🟡" : "🔵")
+                        </div>
+                        <div class="alert-info">
+                            <span class="alert-title">@alert.Title</span>
+                            <span class="alert-message">@alert.Message</span>
+                        </div>
+                        <span class="alert-time">@alert.CreatedAt.ToString("HH:mm")</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/dashboard.js"></script>
+    <script>
+        initDashboardChart(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.HourlyPassData)));
+    </script>
+}

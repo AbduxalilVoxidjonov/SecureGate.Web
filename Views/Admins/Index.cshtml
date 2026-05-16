@@ -1,0 +1,88 @@
+@model List<AdminListItemViewModel>
+@{
+    ViewData["Title"] = "Adminlar";
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h2>Adminlar boshqaruvi</h2>
+        <span class="badge">@Model.Count ta</span>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">+ Yangi admin</a>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>F.I.O</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Ruxsatlar</th>
+                <th>Holat</th>
+                <th>Yaratilgan</th>
+                <th>Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in Model)
+            {
+                <tr>
+                    <td><strong>@a.FullName</strong></td>
+                    <td>@a.Email</td>
+                    <td>
+                        @if (a.IsSuperAdmin)
+                        {
+                            <span class="status-badge status-active">SuperAdmin</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-new">Admin</span>
+                        }
+                    </td>
+                    <td>
+                        @if (a.IsSuperAdmin)
+                        {
+                            <span style="color:#64748b;">Barcha</span>
+                        }
+                        else
+                        {
+                            <span>@a.PermissionCount ta</span>
+                        }
+                    </td>
+                    <td>
+                        @if (a.IsActive)
+                        {
+                            <span class="status-badge status-active">Faol</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-blocked">Bloklangan</span>
+                        }
+                    </td>
+                    <td>@a.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</td>
+                    <td>
+                        <div style="display:flex; gap:6px;">
+                            <a asp-action="Edit" asp-route-id="@a.Id" class="btn btn-sm btn-secondary">Tahrir</a>
+                            <a asp-action="ResetPassword" asp-route-id="@a.Id" class="btn btn-sm btn-secondary">Parol</a>
+                            @if (!a.IsSuperAdmin)
+                            {
+                                <form asp-action="ToggleActive" asp-route-id="@a.Id" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm @(a.IsActive ? "btn-warning" : "btn-success")">
+                                        @(a.IsActive ? "Blok" : "Ochish")
+                                    </button>
+                                </form>
+                                <form asp-action="Delete" asp-route-id="@a.Id" method="post" style="display:inline;"
+                                      onsubmit="return confirm('Adminni o\'chirishni tasdiqlaysizmi?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-danger">O'chir</button>
+                                </form>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,78 @@
+@model List<Turnstile>
+@{
+    ViewData["Title"] = "Turniketlar";
+}
+
+<div class="page-header">
+    <h2>Turniketlar boshqaruvi</h2>
+    <div class="page-header-actions">
+        <button class="btn btn-danger" onclick="emergencyOpenAll()">🚨 Favqulodda ochish</button>
+        <a asp-action="Create" class="btn btn-primary">+ Yangi turniket</a>
+    </div>
+</div>
+
+<div class="turnstile-grid">
+    @foreach (var t in Model)
+    {
+        <div class="turnstile-card" id="turnstile-@t.Id" data-id="@t.Id">
+            <div class="turnstile-header">
+                <div class="turnstile-name">
+                    <span class="turnstile-icon">🚪</span>
+                    <div>
+                        <h4>@t.Name</h4>
+                        <span class="text-muted">@(t.Location ?? "")</span>
+                    </div>
+                </div>
+                <span class="status-dot status-@t.Status.ToString().ToLower()" id="status-dot-@t.Id"></span>
+            </div>
+
+            <div class="turnstile-stats">
+                <div class="turnstile-stat-item">
+                    <span class="stat-number text-green" id="pass-count-@t.Id">@t.TodayPassCount</span>
+                    <span class="stat-desc">O'tish</span>
+                </div>
+                <div class="turnstile-stat-item">
+                    <span class="stat-number text-red" id="deny-count-@t.Id">@t.TodayDenyCount</span>
+                    <span class="stat-desc">Rad</span>
+                </div>
+                <div class="turnstile-stat-item">
+                    <span class="stat-number">@t.Uptime</span>
+                    <span class="stat-desc">Uptime</span>
+                </div>
+            </div>
+
+            <div class="turnstile-meta">
+                <span>@t.Model.GetDisplayName()</span>
+                <span>@t.IpAddress:@t.Port</span>
+            </div>
+
+            <div class="turnstile-features">
+                @if (t.FaceRecognitionEnabled) { <span class="feature-badge">🤖 Yuz</span> }
+                @if (t.RfidEnabled) { <span class="feature-badge">💳 Karta</span> }
+                @if (t.QrCodeEnabled) { <span class="feature-badge">📱 QR</span> }
+            </div>
+
+            <div class="turnstile-actions">
+                @if (t.Status == TurnstileStatus.Online)
+                {
+                    <button class="btn btn-sm btn-warning" onclick="closeTurnstile(@t.Id)">⏸ Yopish</button>
+                    <button class="btn btn-sm btn-danger" onclick="blockTurnstile(@t.Id)">🔒 Bloklash</button>
+                }
+                else if (t.Status == TurnstileStatus.Offline)
+                {
+                    <button class="btn btn-sm btn-success" onclick="openTurnstile(@t.Id)">▶ Ochish</button>
+                    <button class="btn btn-sm btn-danger" onclick="blockTurnstile(@t.Id)">🔒 Bloklash</button>
+                }
+                else
+                {
+                    <button class="btn btn-sm btn-success" onclick="unblockTurnstile(@t.Id)">🔓 Blokdan chiqarish</button>
+                }
+                <a asp-action="Details" asp-route-id="@t.Id" class="btn btn-sm btn-secondary">Batafsil</a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/turnstile.js"></script>
+}

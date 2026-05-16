@@ -1,0 +1,109 @@
+@model CameraGroupFormViewModel
+
+<div class="form-card">
+    <div class="form-group" style="max-width:480px;">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-input" placeholder="Masalan: Asosiy kirish kameralari" autofocus />
+        <span asp-validation-for="Name" class="form-error"></span>
+    </div>
+
+    <div style="margin-top:24px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <label class="form-label" style="margin:0;">Guruhga kiruvchi kameralar</label>
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="btn btn-sm btn-secondary" id="btnSelectAll">Hammasini tanlash</button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btnClearAll">Tozalash</button>
+            </div>
+        </div>
+
+        <div style="margin-bottom:10px;">
+            <input type="text" id="cameraSearch" placeholder="Kamera nomi yoki kodi bo'yicha qidirish..."
+                   class="form-input" style="max-width:360px;" />
+        </div>
+
+        @if (!Model.AvailableCameras.Any())
+        {
+            <div class="card" style="padding:16px; text-align:center; color:#64748b;">
+                Hali tizimda kamera yo'q. Avval kameralar qo'shing.
+            </div>
+        }
+        else
+        {
+            <div class="card" style="padding:8px; max-height:420px; overflow-y:auto;">
+                <table class="data-table" style="margin:0;" id="cameraTable">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;"></th>
+                            <th>Kamera</th>
+                            <th>Kod</th>
+                            <th>Joriy guruh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cam in Model.AvailableCameras)
+                        {
+                            var isChecked = Model.SelectedCameraIds.Contains(cam.Id);
+                            <tr class="cam-row" data-name="@cam.Name.ToLower()" data-code="@cam.CameraCode.ToLower()">
+                                <td>
+                                    <input type="checkbox" name="SelectedCameraIds" value="@cam.Id" class="cam-check"
+                                           @(isChecked ? "checked=\"checked\"" : "") />
+                                </td>
+                                <td>@cam.Name</td>
+                                <td><code style="font-size:12px; color:#64748b;">@cam.CameraCode</code></td>
+                                <td>
+                                    @if (cam.IsInOtherGroup)
+                                    {
+                                        <span class="status-badge status-new" title="Bu kamera boshqa guruhda — tanlasangiz, shu guruhga ko'chiriladi.">
+                                            @cam.CurrentGroupName
+                                        </span>
+                                    }
+                                    else if (!string.IsNullOrEmpty(cam.CurrentGroupName))
+                                    {
+                                        <span style="color:#64748b; font-size:12px;">@cam.CurrentGroupName</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:#94a3b8; font-size:12px;">— guruhsiz —</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p style="font-size:12px; color:#64748b; margin-top:8px;">
+                Boshqa guruhdagi kamerani tanlasangiz, u shu guruhga ko'chadi (kamera bir vaqtning o'zida faqat bitta guruhga tegishli bo'la oladi).
+            </p>
+        }
+    </div>
+</div>
+
+<script>
+(function () {
+    const search = document.getElementById('cameraSearch');
+    const rows = document.querySelectorAll('.cam-row');
+    const btnAll = document.getElementById('btnSelectAll');
+    const btnClear = document.getElementById('btnClearAll');
+
+    search?.addEventListener('input', () => {
+        const q = search.value.toLowerCase().trim();
+        rows.forEach(r => {
+            const name = r.dataset.name || '';
+            const code = r.dataset.code || '';
+            r.style.display = (name.includes(q) || code.includes(q)) ? '' : 'none';
+        });
+    });
+
+    btnAll?.addEventListener('click', () => {
+        document.querySelectorAll('.cam-row').forEach(r => {
+            if (r.style.display !== 'none') {
+                r.querySelector('.cam-check').checked = true;
+            }
+        });
+    });
+
+    btnClear?.addEventListener('click', () => {
+        document.querySelectorAll('.cam-check').forEach(c => c.checked = false);
+    });
+})();
+</script>

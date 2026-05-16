@@ -1,0 +1,84 @@
+@model CameraGridViewModel
+@{
+    ViewData["Title"] = "Kameralar";
+}
+
+<div class="page-header">
+    <h2>Kameralar monitoring</h2>
+    <div class="page-header-actions">
+        <div class="grid-toggle">
+            <button class="btn btn-sm btn-secondary" onclick="setGrid(2)">2×2</button>
+            <button class="btn btn-sm btn-secondary active" onclick="setGrid(3)">3×3</button>
+            <button class="btn btn-sm btn-secondary" onclick="setGrid(4)">4×4</button>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">+ Yangi kamera</a>
+
+        <a asp-controller="CameraGroups" asp-action="Index" class="btn btn-secondary">📁 Guruhlar</a>
+
+    </div>
+</div>
+
+<!-- Filtrlar -->
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <select name="groupId" class="form-select">
+            <option value="">Barcha guruhlar</option>
+            @foreach (var g in Model.CameraGroups)
+            {
+                <option value="@g.Id" selected="@(Model.SelectedGroupId == g.Id)">@g.Name (@g.CameraCount)</option>
+            }
+        </select>
+        <select name="status" class="form-select">
+            <option value="">Barcha holatlar</option>
+            <option value="@CameraStatus.Online" selected="@(Model.StatusFilter == CameraStatus.Online)">Faol</option>
+            <option value="@CameraStatus.Offline" selected="@(Model.StatusFilter == CameraStatus.Offline)">Oflayn</option>
+        </select>
+        <input type="text" name="search" value="@Model.SearchTerm" placeholder="Qidirish..." class="form-input" />
+        <button type="submit" class="btn btn-secondary">Filtr</button>
+    </form>
+</div>
+
+<div class="camera-grid" id="cameraGrid" style="grid-template-columns: repeat(3, 1fr)">
+    @foreach (var cam in Model.Cameras)
+    {
+        <div class="camera-card @(cam.Status == CameraStatus.Offline ? "camera-offline" : "")" data-id="@cam.Id">
+            <div class="camera-preview">
+                <div class="camera-placeholder">
+                    @if (cam.Status == CameraStatus.Online)
+                    {
+                        <span class="camera-live-badge">● LIVE</span>
+                        <span>📹 @cam.CameraCode</span>
+                    }
+                    else
+                    {
+                        <span class="camera-offline-badge">OFLAYN</span>
+                        <span>📹 @cam.CameraCode</span>
+                    }
+                </div>
+            </div>
+            <div class="camera-info">
+    <div class="camera-name">
+        <strong>@cam.Name</strong>
+        <span class="status-dot status-@cam.Status.ToString().ToLower()"></span>
+    </div>
+    <div class="camera-meta">
+        <span>@cam.Quality.GetDisplayName() · @(cam.Fps)fps</span>
+        @if (cam.FaceRecognitionEnabled) { <span class="feature-tag">🤖 AI</span> }
+    </div>
+    <div class="camera-group-tag">@(cam.CameraGroup?.Name ?? "Guruhsiz")</div>
+</div>
+
+<div class="camera-actions">
+    <div class="btn-group">
+        <a asp-action="Details" asp-route-id="@cam.Id" class="btn btn-sm btn-secondary">Kattalashtirish</a>
+        <a asp-action="Edit" asp-route-id="@cam.Id" class="btn btn-sm btn-primary">Tahrirlash</a>
+    </div>
+</div>
+            </div>
+       
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/camera-grid.js"></script>
+}

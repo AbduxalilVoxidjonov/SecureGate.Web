@@ -1,0 +1,72 @@
+@model List<CameraGroupListItemViewModel>
+@{
+    ViewData["Title"] = "Kamera guruhlari";
+    bool canManage = User.HasPermission(Permission.CameraManage, PermissionService);
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a asp-controller="Camera" asp-action="Index" class="btn btn-back">← Kameralar</a>
+        <h2>Kamera guruhlari</h2>
+        <span class="badge">@Model.Count ta</span>
+    </div>
+    @if (canManage)
+    {
+        <a asp-action="Create" class="btn btn-primary">+ Yangi guruh</a>
+    }
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="card" style="padding:32px; text-align:center; color:#64748b;">
+        <p style="margin:0 0 8px;">Hali birorta guruh yaratilmagan.</p>
+        @if (canManage)
+        {
+            <a asp-action="Create" class="btn btn-primary" style="margin-top:8px;">Birinchi guruhni yaratish</a>
+        }
+    </div>
+}
+else
+{
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:16px;">
+        @foreach (var g in Model)
+        {
+            <div class="card" style="padding:18px; display:flex; flex-direction:column;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                    <h3 style="margin:0; font-size:16px;">@g.Name</h3>
+                    <span class="badge">@g.CameraCount kamera</span>
+                </div>
+
+                @if (g.CameraNames.Any())
+                {
+                    <ul style="margin:0 0 14px; padding-left:18px; color:#475569; font-size:13px; flex:1;">
+                        @foreach (var name in g.CameraNames.Take(6))
+                        {
+                            <li>@name</li>
+                        }
+                        @if (g.CameraNames.Count > 6)
+                        {
+                            <li style="color:#94a3b8;">va yana @(g.CameraNames.Count - 6) ta…</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p style="margin:0 0 14px; color:#94a3b8; font-size:13px; flex:1;">Bu guruhda hali kamera yo'q.</p>
+                }
+
+                @if (canManage)
+                {
+                    <div style="display:flex; gap:8px;">
+                        <a asp-action="Edit" asp-route-id="@g.Id" class="btn btn-sm btn-secondary" style="flex:1;">Tahrirlash</a>
+                        <form asp-action="Delete" asp-route-id="@g.Id" method="post" style="flex:0;"
+                              onsubmit="return confirm('Guruh o\'chirilsa kameralar guruhsiz qoladi. Tasdiqlaysizmi?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-danger">O'chir</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

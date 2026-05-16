@@ -1,0 +1,247 @@
+@model UsersCreateViewModel
+@{
+    ViewData["Title"] = "Yangi o'quvchi qo'shish";
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Yangi o'quvchi qo'shish</h2>
+</div>
+
+<div class="form-card">
+    <form asp-action="Create" method="post" enctype="multipart/form-data" id="userCreateForm">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom:14px;"></div>
+
+        <!-- ===== YUZ RASMI ===== -->
+        <div class="photo-block" style="margin-bottom:24px; border:1px solid #e2e8f0; border-radius:12px; padding:18px;">
+            <h3 style="margin:0 0 4px; font-size:15px;">Yuz rasmi <span style="color:#dc2626;">*</span></h3>
+            <p style="margin:0 0 14px; font-size:12px; color:#64748b;">
+                Turniketda yuzni tanish uchun foydalanuvchi yuzini yuklang yoki veb-kameradan tushiring.
+            </p>
+
+            <div class="photo-tabs" style="display:flex; gap:8px; margin-bottom:14px;">
+                <button type="button" class="btn btn-sm photo-tab active" data-tab="upload">📁 Fayl yuklash</button>
+                <button type="button" class="btn btn-sm photo-tab" data-tab="webcam">📷 Veb-kamera</button>
+            </div>
+
+            <!-- Yashirin maydon (veb-kameradan olingan rasm uchun) -->
+            <input type="hidden" asp-for="CapturedPhotoBase64" id="capturedPhoto" />
+
+            <!-- Fayl yuklash paneli -->
+            <div class="photo-pane" id="paneUpload" style="display:flex; gap:16px; align-items:flex-start;">
+                <div style="flex:1;">
+                    <input type="file" asp-for="PhotoFile" accept="image/*" id="photoFileInput"
+                           class="form-input" style="padding:8px;" />
+                    <span asp-validation-for="PhotoFile" class="form-error"></span>
+                    <p style="font-size:11px; color:#94a3b8; margin-top:6px;">
+                        Maks. 5 MB. Formatlar: JPG, PNG, WEBP.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Veb-kamera paneli -->
+            <div class="photo-pane" id="paneWebcam" style="display:none;">
+                <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+                    <div>
+                        <video id="webcamVideo" autoplay playsinline muted
+                               style="width:320px; height:240px; background:#000; border-radius:8px; display:block;"></video>
+                        <canvas id="webcamCanvas" width="320" height="240" style="display:none;"></canvas>
+                        <div style="margin-top:10px; display:flex; gap:8px;">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnStartCam">Kamerani yoqish</button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="btnCapture" disabled>📸 Suratga olish</button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="btnRetake" style="display:none;">Qaytadan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div id="photoPreviewBox" style="display:none; margin-top:14px;">
+                <p style="font-size:12px; color:#475569; margin:0 0 6px;">Tanlangan rasm:</p>
+                <img id="photoPreview" src="" alt="preview"
+                     style="max-width:200px; max-height:200px; border-radius:8px; border:2px solid #e2e8f0;" />
+            </div>
+        </div>
+
+        <!-- ===== ASOSIY MAYDONLAR ===== -->
+        <div class="form-grid">
+            <div class="form-group">
+                <label asp-for="FirstName" class="form-label"></label>
+                <input asp-for="FirstName" class="form-input" placeholder="Ism kiriting" />
+                <span asp-validation-for="FirstName" class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="LastName" class="form-label"></label>
+                <input asp-for="LastName" class="form-input" placeholder="Familiya kiriting" />
+                <span asp-validation-for="LastName" class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="DateOfBirth" class="form-label"></label>
+                <input asp-for="DateOfBirth" type="date" class="form-input" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Gender" class="form-label"></label>
+                <select asp-for="Gender" asp-items="Html.GetEnumSelectList<Gender>()" class="form-select"></select>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Phone" class="form-label"></label>
+                <input asp-for="Phone" class="form-input" placeholder="+998 XX XXX XX XX" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ParentPhone" class="form-label"></label>
+                <input asp-for="ParentPhone" class="form-input" placeholder="+998 XX XXX XX XX" />
+            </div>
+
+            <div class="form-group form-group-wide">
+                <label asp-for="Address" class="form-label"></label>
+                <input asp-for="Address" class="form-input" placeholder="Manzil kiriting" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ruxsat etilgan turniketlar</label>
+                <div class="checkbox-group">
+                    @foreach (var t in Model.AvailableTurnstiles)
+                    {
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="AllowedTurnstileIds" value="@t.Id" />
+                            <span>@t.Name</span>
+                        </label>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="form-switches">
+            <label class="switch-label">
+                <input asp-for="FaceRecognitionEnabled" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>Yuz tanish yoqilgan</span>
+            </label>
+            <label class="switch-label">
+                <input asp-for="SmsNotification" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>SMS bildirishnoma</span>
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const tabs = document.querySelectorAll('.photo-tab');
+    const paneUpload = document.getElementById('paneUpload');
+    const paneWebcam = document.getElementById('paneWebcam');
+    const fileInput = document.getElementById('photoFileInput');
+    const capturedInput = document.getElementById('capturedPhoto');
+    const previewBox = document.getElementById('photoPreviewBox');
+    const preview = document.getElementById('photoPreview');
+
+    const video = document.getElementById('webcamVideo');
+    const canvas = document.getElementById('webcamCanvas');
+    const btnStart = document.getElementById('btnStartCam');
+    const btnCapture = document.getElementById('btnCapture');
+    const btnRetake = document.getElementById('btnRetake');
+    let stream = null;
+
+    // Tab almashtirish
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const which = tab.dataset.tab;
+            paneUpload.style.display = which === 'upload' ? '' : 'none';
+            paneWebcam.style.display = which === 'webcam' ? '' : 'none';
+
+            // Boshqa tab tanlanganida qarama-qarshi inputni tozalash
+            if (which === 'upload') {
+                capturedInput.value = '';
+                stopStream();
+            } else {
+                fileInput.value = '';
+            }
+            updatePreview();
+        });
+    });
+
+    fileInput.addEventListener('change', () => {
+        capturedInput.value = '';
+        updatePreview();
+    });
+
+    btnStart.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 }, audio: false });
+            video.srcObject = stream;
+            btnStart.disabled = true;
+            btnCapture.disabled = false;
+        } catch (err) {
+            alert('Veb-kamerani ochishda xatolik: ' + err.message);
+        }
+    });
+
+    btnCapture.addEventListener('click', () => {
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        capturedInput.value = dataUrl;
+
+        preview.src = dataUrl;
+        previewBox.style.display = '';
+        btnRetake.style.display = '';
+        btnCapture.disabled = true;
+        stopStream();
+    });
+
+    btnRetake.addEventListener('click', () => {
+        capturedInput.value = '';
+        previewBox.style.display = 'none';
+        btnRetake.style.display = 'none';
+        btnStart.disabled = false;
+    });
+
+    function stopStream() {
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+            video.srcObject = null;
+        }
+    }
+
+    function updatePreview() {
+        const f = fileInput.files && fileInput.files[0];
+        if (f) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                previewBox.style.display = '';
+            };
+            reader.readAsDataURL(f);
+        } else if (!capturedInput.value) {
+            previewBox.style.display = 'none';
+            preview.src = '';
+        }
+    }
+
+    // Forma yuborilganidan keyin kamerani o'chirish (xotira)
+    document.getElementById('userCreateForm').addEventListener('submit', stopStream);
+    window.addEventListener('beforeunload', stopStream);
+})();
+</script>
+<style>
+    .photo-tab { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
+    .photo-tab.active { background:#2563eb; color:#fff; border-color:#2563eb; }
+</style>
+}

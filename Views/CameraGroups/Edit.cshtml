@@ -1,0 +1,23 @@
+@model CameraGroupFormViewModel
+@{
+    ViewData["Title"] = $"Guruhni tahrirlash — {Model.Name}";
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Guruhni tahrirlash</h2>
+</div>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom:14px;"></div>
+
+    @await Html.PartialAsync("_Form", Model)
+
+    <div class="form-actions" style="margin-top:20px;">
+        <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
+        <button type="submit" class="btn btn-primary">Saqlash</button>
+    </div>
+</form>

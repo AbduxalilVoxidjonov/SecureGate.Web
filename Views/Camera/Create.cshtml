@@ -1,0 +1,84 @@
+@model CameraCreateViewModel
+@{
+    ViewData["Title"] = "Yangi kamera";
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Yangi kamera qo'shish</h2>
+</div>
+
+<div class="form-card">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="form-grid">
+            <div class="form-group">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-input" placeholder="Asosiy kirish — janubiy" />
+                <span asp-validation-for="Name" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Protocol" class="form-label"></label>
+                <select asp-for="Protocol" asp-items="Html.GetEnumSelectList<CameraProtocol>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="CameraModel" class="form-label"></label>
+                <select asp-for="CameraModel" asp-items="Html.GetEnumSelectList<CameraModel>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Quality" class="form-label"></label>
+                <select asp-for="Quality" asp-items="Html.GetEnumSelectList<VideoQuality>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="StreamUrl" class="form-label"></label>
+                <input asp-for="StreamUrl" class="form-input" placeholder="rtsp://192.168.1.10:554/stream" />
+            </div>
+            <div class="form-group">
+                <label asp-for="IpAddress" class="form-label"></label>
+                <input asp-for="IpAddress" class="form-input" placeholder="192.168.1.XX" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Port" class="form-label"></label>
+                <input asp-for="Port" type="number" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Username" class="form-input" placeholder="admin" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" type="password" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label asp-for="CameraGroupId" class="form-label"></label>
+                <select asp-for="CameraGroupId" class="form-select">
+                    <option value="">Guruh tanlang</option>
+                    @foreach (var g in Model.AvailableGroups) { <option value="@g.Id">@g.Name</option> }
+                </select>
+            </div>
+        </div>
+
+        <div class="form-switches">
+            <label class="switch-label">
+                <input asp-for="FaceRecognitionEnabled" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>Yuz tanish (AI)</span>
+            </label>
+            <label class="switch-label">
+                <input asp-for="ContinuousRecording" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>24/7 yozib olish</span>
+            </label>
+            <label class="switch-label">
+                <input asp-for="MotionDetection" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>Harakat aniqlash</span>
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+        </div>
+    </form>
+</div>

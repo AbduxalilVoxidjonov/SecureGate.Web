@@ -1,0 +1,103 @@
+@model Users
+@{
+    ViewData["Title"] = Model.FullName;
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>@Model.FullName</h2>
+    <span class="status-badge @(Model.Status == StudentStatus.Active ? "status-active" : Model.Status == StudentStatus.Blocked ? "status-blocked" : "status-new")">
+        @Model.Status.GetDisplayName()
+    </span>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <div class="detail-avatar">
+            <div class="avatar-lg">@Model.Initials</div>
+            <h3>@Model.FullName</h3>
+            <span class="text-muted">ID: #@Model.StudentId</span>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <h4>Shaxsiy ma'lumotlar</h4>
+        <div class="detail-row">
+            <span class="detail-label">Tug'ilgan sana:</span>
+            <span>@(Model.DateOfBirth?.ToString("dd.MM.yyyy") ?? "—")</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Jinsi:</span>
+            <span>@Model.Gender.GetDisplayName()</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Telefon:</span>
+            <span>@(Model.Phone ?? "—")</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Ota-ona telefoni:</span>
+            <span>@(Model.ParentPhone ?? "—")</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Manzil:</span>
+            <span>@(Model.Address ?? "—")</span>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <h4>O'quv ma'lumotlari</h4>
+        
+        <div class="detail-row">
+            <span class="detail-label">Yuz tanish:</span>
+            <span class="toggle-indicator @(Model.FaceRecognitionEnabled ? "on" : "off")">
+                @(Model.FaceRecognitionEnabled ? "Yoqilgan" : "O'chirilgan")
+            </span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">SMS bildirishnoma:</span>
+            <span>@(Model.SmsNotification ? "Yoqilgan" : "O'chirilgan")</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Qo'shilgan sana:</span>
+            <span>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <h4>Ruxsat etilgan turniketlar</h4>
+        @if (Model.TurnstilePermissions.Any())
+        {
+            @foreach (var tp in Model.TurnstilePermissions.Where(tp => tp.IsAllowed))
+            {
+                <div class="detail-row">
+                    <span>🚪 @tp.Turnstile?.Name</span>
+                    <span class="status-badge status-active">Ruxsat</span>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">Turniket ruxsatlari tayinlanmagan</p>
+        }
+    </div>
+</div>
+
+<div class="form-actions">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">✏️ Tahrirlash</a>
+    @if (Model.Status != StudentStatus.Blocked)
+    {
+        <form asp-action="Block" asp-route-id="@Model.Id" method="post" style="display:inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Reason" value="Admin tomonidan" />
+            <input type="hidden" name="ReasonType" value="@BlockReason.Other" />
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Bloklaysizmi?')">🔒 Bloklash</button>
+        </form>
+    }
+    else
+    {
+        <form asp-action="Unblock" asp-route-id="@Model.Id" method="post" style="display:inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-success">🔓 Blokdan chiqarish</button>
+        </form>
+    }
+</div>

@@ -1,0 +1,19 @@
+@model List<Permission>
+
+<div class="permission-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">
+    @foreach (var group in PermissionGroups.All)
+    {
+        <div class="card" style="padding:16px;">
+            <h4 style="margin:0 0 10px; font-size:14px; color:#0f172a;">@group.Key</h4>
+            @foreach (var p in group.Value)
+            {
+                var isChecked = Model.Contains(p);
+                <label style="display:flex; gap:8px; align-items:center; padding:6px 0; font-size:13px; cursor:pointer;">
+                    <input type="checkbox" name="SelectedPermissions" value="@p"
+                           @(isChecked ? "checked=\"checked\"" : "") />
+                    <span>@PermissionGroups.LabelFor(p)</span>
+                </label>
+            }
+        </div>
+    }
+</div>

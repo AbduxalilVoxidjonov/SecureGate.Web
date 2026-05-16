@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — SecureGate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="app">
+        @await Html.PartialAsync("_Sidebar")
+        <div class="main-area">
+            @await Html.PartialAsync("_Topbar")
+            <main class="content">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="toast toast-success" id="toast-auto">
+                        <span class="toast-icon">✓</span>
+                        <span>@TempData["Success"]</span>
+                        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                }
+                @if (TempData["Warning"] != null)
+                {
+                    <div class="toast toast-warning" id="toast-auto">
+                        <span class="toast-icon">⚠</span>
+                        <span>@TempData["Warning"]</span>
+                        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="toast toast-danger" id="toast-auto">
+                        <span class="toast-icon">✕</span>
+                        <span>@TempData["Error"]</span>
+                        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <script src="~/js/signalr-client.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
