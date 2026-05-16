@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Diagnostics;
+using System.Net.Sockets;
+using Microsoft.AspNetCore.Mvc;
 using SecureGate.Web.Filters;
 using SecureGate.Web.Models;
 using SecureGate.Web.Models.Auth;
@@ -74,7 +76,9 @@ namespace SecureGate.Web.Controllers
                 IpAddress = camera.IpAddress,
                 Port = camera.Port,
                 Username = camera.Username,
-                Password = camera.Password,
+                // Parolni HTML'ga jo'natmaymiz — DataProtection bilan shifrlangan.
+                // Foydalanuvchi yangi parol kiritmasa eski qiymat saqlanadi.
+                Password = null,
                 Protocol = camera.Protocol,
                 CameraModel = camera.CameraModel,
                 Quality = camera.Quality,
@@ -108,5 +112,59 @@ namespace SecureGate.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [HasPermission(Permission.CameraManage)]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _cameraService.DeleteAsync(id);
+            if (!result)
+            {
+                TempData["Error"] = "Kamera topilmadi yoki o'chirib bo'lmadi.";
+            }
+            else
+            {
+                TempData["Success"] = "Kamera o'chirildi.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // ===== Real-time ulanish testi =====
+        // Kamera saqlanmasdan oldin/keyin IP+port'ga TCP ulanishni tekshiradi.
+        // RTSP/ONVIF'ning to'liq probe'idan ko'ra oddiy reachability tekshiruvi.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [HasPermission(Permission.CameraManage)]
+        public async Task<IActionResult> TestConnection(string? ip, int port)
+        {
+            if (string.IsNullOrWhiteSpace(ip))
+                return Json(new { success = false, message = "IP manzilni kiriting." });
+
+            if (port < 1 || port > 65535)
+                return Json(new { success = false, message = "Port 1 dan 65535 gacha bo'lishi kerak." });
+
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                using var client = new TcpClient();
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                await client.ConnectAsync(ip, port, cts.Token);
+                sw.Stop();
+                return Json(new { success = true, message = $"✓ Ulandi — {ip}:{port} ({sw.ElapsedMilliseconds} ms)" });
+            }
+            catch (OperationCanceledException)
+            {
+                return Json(new { success = false, message = "Vaqti tugadi (3 sekund). Server javob bermayapti." });
+            }
+            catch (SocketException ex)
+            {
+                return Json(new { success = false, message = $"Ulanmadi: {ex.SocketErrorCode}" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Xato: {ex.Message}" });
+            }
+        }
     }
 }

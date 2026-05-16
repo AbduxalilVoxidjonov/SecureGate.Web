@@ -22,6 +22,10 @@ build_property._RazorSourceGeneratorDebug =
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/AccessLog/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjZXNzTG9nXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/AccessLog/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjZXNzTG9nXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -74,6 +78,26 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FtZXJhR3JvdXBzXF9Gb3JtLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/CameraUser/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FtZXJhVXNlclxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/CameraUser/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FtZXJhVXNlclxEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/CameraUser/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FtZXJhVXNlclxFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/CameraUser/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FtZXJhVXNlclxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/CameraUser/Stats.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FtZXJhVXNlclxTdGF0cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Camera/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FtZXJhXENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -90,12 +114,12 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FtZXJhXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/FaceRecognition/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmFjZVJlY29nbml0aW9uXEluZGV4LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Recording/Camera.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVjb3JkaW5nXENhbWVyYS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Recording/Index.cshtml]
@@ -106,8 +130,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0XEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Settings/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2V0dGluZ3NcSW5kZXguY3NodG1s
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Settings/Api.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2V0dGluZ3NcQXBpLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Settings/Documentation.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2V0dGluZ3NcRG9jdW1lbnRhdGlvbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Settings/Integrations.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2V0dGluZ3NcSW50ZWdyYXRpb25zLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Settings/Notifications.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2V0dGluZ3NcTm90aWZpY2F0aW9ucy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Settings/_Tabs.cshtml]
@@ -128,6 +164,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Staff/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3RhZmZcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Staff/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3RhZmZcRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Staff/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3RhZmZcRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/abduh/source/repos/SecureGate.Web/SecureGate.Web/Views/Staff/Index.cshtml]

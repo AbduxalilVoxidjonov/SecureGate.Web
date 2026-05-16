@@ -9,16 +9,68 @@
 </div>
 
 <div class="form-card">
-    <form asp-action="Create" method="post">
+    <form asp-action="Create" method="post" enctype="multipart/form-data" id="staffCreateForm">
         @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom:14px;"></div>
+
+        <!-- ===== YUZ RASMI ===== -->
+        <div class="photo-block" style="margin-bottom:24px; border:1px solid var(--border); border-radius:12px; padding:18px;">
+            <h3 style="margin:0 0 4px; font-size:15px;">Yuz rasmi <span style="color:var(--danger);">*</span></h3>
+            <p style="margin:0 0 14px; font-size:12px; color:var(--text-muted);">
+                Turniketda yuzni tanish uchun xodim yuzini yuklang yoki veb-kameradan tushiring.
+            </p>
+
+            <div class="photo-tabs" style="display:flex; gap:8px; margin-bottom:14px;">
+                <button type="button" class="btn btn-sm photo-tab active" data-tab="upload">📁 Fayl yuklash</button>
+                <button type="button" class="btn btn-sm photo-tab" data-tab="webcam">📷 Veb-kamera</button>
+            </div>
+
+            <input type="hidden" asp-for="CapturedPhotoBase64" id="capturedPhoto" />
+
+            <div class="photo-pane" id="paneUpload" style="display:flex; gap:16px; align-items:flex-start;">
+                <div style="flex:1;">
+                    <input type="file" asp-for="PhotoFile" accept="image/*" id="photoFileInput"
+                           class="form-input" style="padding:8px;" />
+                    <span asp-validation-for="PhotoFile" class="form-error"></span>
+                    <p style="font-size:11px; color:var(--text-dim); margin-top:6px;">
+                        Maks. 5 MB. Formatlar: JPG, PNG, WEBP.
+                    </p>
+                </div>
+            </div>
+
+            <div class="photo-pane" id="paneWebcam" style="display:none;">
+                <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+                    <div>
+                        <video id="webcamVideo" autoplay playsinline muted
+                               style="width:320px; height:240px; background:#000; border-radius:8px; display:block;"></video>
+                        <canvas id="webcamCanvas" width="320" height="240" style="display:none;"></canvas>
+                        <div style="margin-top:10px; display:flex; gap:8px;">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnStartCam">Kamerani yoqish</button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="btnCapture" disabled>📸 Suratga olish</button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="btnRetake" style="display:none;">Qaytadan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="photoPreviewBox" style="display:none; margin-top:14px;">
+                <p style="font-size:12px; color:var(--text-muted); margin:0 0 6px;">Tanlangan rasm:</p>
+                <img id="photoPreview" src="" alt="preview"
+                     style="max-width:200px; max-height:200px; border-radius:8px; border:2px solid var(--border);" />
+            </div>
+        </div>
+
         <div class="form-grid">
             <div class="form-group">
                 <label asp-for="FullName" class="form-label"></label>
                 <input asp-for="FullName" class="form-input" placeholder="To'liq F.I.O" />
+                <span asp-validation-for="FullName" class="form-error"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Position" class="form-label"></label>
                 <input asp-for="Position" class="form-input" placeholder="Lavozim nomi" />
+                <span asp-validation-for="Position" class="form-error"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Department" class="form-label"></label>
@@ -43,3 +95,108 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    const tabs = document.querySelectorAll('.photo-tab');
+    const paneUpload = document.getElementById('paneUpload');
+    const paneWebcam = document.getElementById('paneWebcam');
+    const fileInput = document.getElementById('photoFileInput');
+    const capturedInput = document.getElementById('capturedPhoto');
+    const previewBox = document.getElementById('photoPreviewBox');
+    const preview = document.getElementById('photoPreview');
+
+    const video = document.getElementById('webcamVideo');
+    const canvas = document.getElementById('webcamCanvas');
+    const btnStart = document.getElementById('btnStartCam');
+    const btnCapture = document.getElementById('btnCapture');
+    const btnRetake = document.getElementById('btnRetake');
+    let stream = null;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const which = tab.dataset.tab;
+            paneUpload.style.display = which === 'upload' ? '' : 'none';
+            paneWebcam.style.display = which === 'webcam' ? '' : 'none';
+
+            if (which === 'upload') {
+                capturedInput.value = '';
+                stopStream();
+            } else {
+                fileInput.value = '';
+            }
+            updatePreview();
+        });
+    });
+
+    fileInput.addEventListener('change', () => {
+        capturedInput.value = '';
+        updatePreview();
+    });
+
+    btnStart.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 }, audio: false });
+            video.srcObject = stream;
+            btnStart.disabled = true;
+            btnCapture.disabled = false;
+        } catch (err) {
+            alert('Veb-kamerani ochishda xatolik: ' + err.message);
+        }
+    });
+
+    btnCapture.addEventListener('click', () => {
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        capturedInput.value = dataUrl;
+
+        preview.src = dataUrl;
+        previewBox.style.display = '';
+        btnRetake.style.display = '';
+        btnCapture.disabled = true;
+        stopStream();
+    });
+
+    btnRetake.addEventListener('click', () => {
+        capturedInput.value = '';
+        previewBox.style.display = 'none';
+        btnRetake.style.display = 'none';
+        btnStart.disabled = false;
+    });
+
+    function stopStream() {
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+            video.srcObject = null;
+        }
+    }
+
+    function updatePreview() {
+        const f = fileInput.files && fileInput.files[0];
+        if (f) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                previewBox.style.display = '';
+            };
+            reader.readAsDataURL(f);
+        } else if (!capturedInput.value) {
+            previewBox.style.display = 'none';
+            preview.src = '';
+        }
+    }
+
+    document.getElementById('staffCreateForm').addEventListener('submit', stopStream);
+    window.addEventListener('beforeunload', stopStream);
+})();
+</script>
+<style>
+    .photo-tab { background: var(--bg-input); color: var(--text-muted); border: 1px solid var(--border); }
+    .photo-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+</style>
+}

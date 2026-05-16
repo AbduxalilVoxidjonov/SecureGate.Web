@@ -1,0 +1,105 @@
+@model IntegrationsSettingsViewModel
+@{
+    ViewData["Title"] = "Sozlamalar — Integratsiyalar";
+}
+
+<div class="page-header"><h2>Tizim sozlamalari</h2></div>
+
+@await Html.PartialAsync("_Tabs")
+
+<form asp-action="Integrations" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom:14px;"></div>
+
+    <!-- SMTP -->
+    <div class="settings-section">
+        <h3>📧 SMTP (Email)</h3>
+        <p class="section-desc">Email bildirishnomalarini yuborish uchun SMTP server ma'lumotlari.</p>
+
+        <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label asp-for="SmtpHost" class="form-label"></label>
+                <input asp-for="SmtpHost" class="form-input" placeholder="smtp.gmail.com" />
+            </div>
+            <div class="form-group">
+                <label asp-for="SmtpPort" class="form-label"></label>
+                <input asp-for="SmtpPort" type="number" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label asp-for="SmtpUsername" class="form-label"></label>
+                <input asp-for="SmtpUsername" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label asp-for="SmtpPassword" class="form-label"></label>
+                <input asp-for="SmtpPassword" type="password" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label asp-for="SmtpFromEmail" class="form-label"></label>
+                <input asp-for="SmtpFromEmail" class="form-input" placeholder="noreply@example.com" />
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+                <label class="switch-label">
+                    <input asp-for="SmtpUseSsl" type="checkbox" class="switch-input" />
+                    <span class="switch-slider"></span>
+                    <span>SSL/TLS yoqilgan</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telegram -->
+    <div class="settings-section">
+        <h3>✈️ Telegram</h3>
+        <p class="section-desc">
+            Telegram bot orqali bildirishnoma yuborish.
+            <a href="https://t.me/BotFather" target="_blank">@@BotFather</a> orqali bot yarating va tokenni shu yerga qo'ying.
+        </p>
+
+        <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label asp-for="TelegramBotToken" class="form-label"></label>
+                <input asp-for="TelegramBotToken" class="form-input" placeholder="123456789:ABC-DEF1234..." />
+            </div>
+            <div class="form-group">
+                <label asp-for="TelegramChatId" class="form-label"></label>
+                <input asp-for="TelegramChatId" class="form-input" placeholder="-1001234567890" />
+            </div>
+        </div>
+    </div>
+
+    <!-- SMS -->
+    <div class="settings-section">
+        <h3>📱 SMS gateway</h3>
+        <p class="section-desc">
+            O'zbekiston bozoridagi SMS provayderlardan birini tanlang
+            (Eskiz.uz, PlayMobile, va h.k.).
+        </p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label asp-for="SmsProvider" class="form-label"></label>
+                <select asp-for="SmsProvider" class="form-select">
+                    <option value="Eskiz.uz">Eskiz.uz</option>
+                    <option value="PlayMobile">PlayMobile</option>
+                    <option value="Boshqa">Boshqa</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="SmsSender" class="form-label"></label>
+                <input asp-for="SmsSender" class="form-input" placeholder="4546 yoki SecureGate" />
+            </div>
+            <div class="form-group">
+                <label asp-for="SmsApiUrl" class="form-label"></label>
+                <input asp-for="SmsApiUrl" class="form-input" placeholder="https://notify.eskiz.uz/api" />
+            </div>
+            <div class="form-group">
+                <label asp-for="SmsApiKey" class="form-label"></label>
+                <input asp-for="SmsApiKey" type="password" class="form-input" />
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Saqlash</button>
+    </div>
+</form>

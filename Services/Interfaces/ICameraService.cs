@@ -9,6 +9,7 @@ namespace SecureGate.Web.Services.Interfaces
         Task<Camera?> GetByIdAsync(int id);
         Task<Camera> CreateAsync(CameraCreateViewModel model);
         Task<bool> UpdateAsync(CameraEditViewModel model);
+        Task<bool> DeleteAsync(int id);
 
         // ===== Camera Groups =====
         Task<List<CameraGroup>> GetGroupsAsync();

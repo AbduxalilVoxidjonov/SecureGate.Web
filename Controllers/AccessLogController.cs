@@ -22,5 +22,12 @@ namespace SecureGate.Web.Controllers
             var model = await _accessLogService.GetLogsAsync(search, result, method, turnstileId, dateFrom, dateTo, page, 15);
             return View(model);
         }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var log = await _accessLogService.GetByIdAsync(id);
+            if (log == null) return NotFound();
+            return View(log);
+        }
     }
 }

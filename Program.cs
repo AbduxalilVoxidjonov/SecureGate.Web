@@ -67,11 +67,20 @@ builder.Services.AddScoped<ITurnstileService, TurnstileService>();
 builder.Services.AddScoped<ICameraService, CameraService>();
 builder.Services.AddScoped<IAccessLogService, AccessLogService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddScoped<IFaceRecognitionService, FaceRecognitionService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<ISettingService, SettingService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IPhotoStorageService, PhotoStorageService>();
+builder.Services.AddScoped<ICameraUserService, CameraUserService>();
+builder.Services.AddSingleton<ICameraCredentialProtector, CameraCredentialProtector>();
+
+// ===== Python face-worker HTTP klienti =====
+var faceWorkerUrl = builder.Configuration["FaceWorker:BaseUrl"] ?? "http://localhost:8001";
+builder.Services.AddHttpClient<IFaceRecognitionClient, FaceRecognitionClient>(c =>
+{
+    c.BaseAddress = new Uri(faceWorkerUrl);
+    c.Timeout = TimeSpan.FromSeconds(15); // Yuz aniqlash 1-3s, embedding ~500ms
+});
 
 var app = builder.Build();
 
@@ -81,8 +90,6 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AppDbContext>();
     context.Database.Migrate();
-
-    SecureGate.Web.Data.DbInitializer.Initialize(context);
 
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
@@ -107,6 +114,9 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// API controllers (attribute routing — /api/face-recognition/*)
+app.MapControllers();
 
 // ===== SignalR Hubs =====
 app.MapHub<TurnstileHub>("/hubs/turnstile");

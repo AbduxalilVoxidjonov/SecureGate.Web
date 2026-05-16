@@ -5,9 +5,8 @@
     bool Can(Permission p) => User.HasPermission(p, PermissionService);
     bool isSuper = User.IsSuperAdmin();
 
-    bool showUsersSection = Can(Permission.UsersView) || Can(Permission.StaffView);
-    bool showSecuritySection = Can(Permission.FaceRecognitionManage) || Can(Permission.RecordingsView)
-                               || Can(Permission.AccessLogsView) || Can(Permission.BlockedManage);
+    bool showUsersSection = Can(Permission.UsersView) || Can(Permission.StaffView) || Can(Permission.CameraUserView);
+    bool showSecuritySection = Can(Permission.RecordingsView) || Can(Permission.BlockedManage);
     bool showSystemSection = Can(Permission.ReportsView) || Can(Permission.SettingsManage) || isSuper;
 }
 
@@ -43,6 +42,12 @@
                     <span class="nav-text">Turniketlar</span>
                 </a>
             }
+            @if (Can(Permission.AccessLogsView))
+            {
+                <a asp-controller="AccessLog" asp-action="Index" class="nav-item @Active("AccessLog")">
+                    <span class="nav-text">Yuz tanish</span>
+                </a>
+            }
         </div>
 
         @if (showUsersSection)
@@ -61,6 +66,12 @@
                         <span class="nav-text">Xodimlar</span>
                     </a>
                 }
+                @if (Can(Permission.CameraUserView))
+                {
+                    <a asp-controller="CameraUser" asp-action="Index" class="nav-item @Active("CameraUser")">
+                        <span class="nav-text">Kamera foydalanuvchilari</span>
+                    </a>
+                }
             </div>
         }
 
@@ -68,22 +79,10 @@
         {
             <div class="nav-section">
                 <div class="nav-section-title">XAVFSIZLIK</div>
-                @if (Can(Permission.FaceRecognitionManage))
-                {
-                    <a asp-controller="FaceRecognition" asp-action="Index" class="nav-item @Active("FaceRecognition")">
-                        <span class="nav-text">Yuz tanish</span>
-                    </a>
-                }
                 @if (Can(Permission.RecordingsView))
                 {
                     <a asp-controller="Recording" asp-action="Index" class="nav-item @Active("Recording")">
                         <span class="nav-text">Yozuvlar arxivi</span>
-                    </a>
-                }
-                @if (Can(Permission.AccessLogsView))
-                {
-                    <a asp-controller="AccessLog" asp-action="Index" class="nav-item @Active("AccessLog")">
-                        <span class="nav-text">Kirish jurnali</span>
                     </a>
                 }
                 @if (Can(Permission.BlockedManage))
@@ -99,6 +98,12 @@
         {
             <div class="nav-section">
                 <div class="nav-section-title">TIZIM</div>
+                @if (isSuper)
+                {
+                    <a asp-controller="Admins" asp-action="Index" class="nav-item @Active("Admins")">
+                        <span class="nav-text">Adminlar</span>
+                    </a>
+                }                
                 @if (Can(Permission.ReportsView))
                 {
                     <a asp-controller="Report" asp-action="Index" class="nav-item @Active("Report")">
@@ -111,12 +116,7 @@
                         <span class="nav-text">Sozlamalar</span>
                     </a>
                 }
-                @if (isSuper)
-                {
-                    <a asp-controller="Admins" asp-action="Index" class="nav-item @Active("Admins")">
-                        <span class="nav-text">Adminlar</span>
-                    </a>
-                }
+               
             </div>
         }
     </nav>

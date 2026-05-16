@@ -1,0 +1,107 @@
+@model NotificationsSettingsViewModel
+@{
+    ViewData["Title"] = "Sozlamalar — Bildirishnomalar";
+}
+
+<div class="page-header"><h2>Tizim sozlamalari</h2></div>
+
+@await Html.PartialAsync("_Tabs")
+
+<form asp-action="Notifications" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom:14px;"></div>
+
+    <!-- Kanallar -->
+    <div class="settings-section">
+        <h3>Bildirishnoma kanallari</h3>
+        <p class="section-desc">Qaysi kanallar orqali bildirishnomalar yuborilishini belgilang.</p>
+
+        @{
+            var channels = new[]
+            {
+                ("InAppEnabled", "Brauzer ichidagi bildirishnomalar", "Veb-interfeysning yuqori chap burchagidagi qo'ng'iroq belgisi orqali"),
+                ("EmailEnabled", "Email", "SMTP integratsiyasi orqali yuboriladi (Integratsiyalar bo'limidan sozlang)"),
+                ("SmsEnabled", "SMS", "SMS provayder orqali yuboriladi (Integratsiyalar bo'limidan sozlang)"),
+                ("TelegramEnabled", "Telegram", "Bot orqali ko'rsatilgan chat ID'ga yuboriladi"),
+                ("SoundEnabled", "Tovushli signal", "Brauzerda muhim hodisalar sodir bo'lganda ovoz chiqaradi"),
+            };
+        }
+
+        @foreach (var (prop, label, desc) in channels)
+        {
+            <div class="toggle-row">
+                <div class="toggle-row-info">
+                    <div class="name">@label</div>
+                    <div class="desc">@desc</div>
+                </div>
+                <label class="switch-label">
+                    <input type="checkbox" name="@prop" value="true" class="switch-input"
+                           @(GetBool(prop) ? "checked" : "") />
+                    <span class="switch-slider"></span>
+                </label>
+            </div>
+        }
+    </div>
+
+    <!-- Hodisalar -->
+    <div class="settings-section">
+        <h3>Qaysi hodisalar haqida xabar berish</h3>
+        <p class="section-desc">Tanlangan kanallar orqali yuboriladigan hodisalar ro'yxati.</p>
+
+        @{
+            var events = new[]
+            {
+                ("NotifyOnDenied", "Ruxsatsiz kirish urinishi", "Tanitilmagan yuz yoki bloklangan foydalanuvchi turniketdan o'tmoqchi bo'lganda"),
+                ("NotifyOnBlocked", "Bloklangan foydalanuvchi", "Bloklangan foydalanuvchi qayta urinish qilganda"),
+                ("NotifyOnCameraOffline", "Kamera oflayn", "Kamera bilan aloqa uzilganda"),
+                ("NotifyOnTurnstileError", "Turniket nosozligi", "Turniket xato qaytarganda yoki ulanmaganda"),
+                ("NotifyOnUserCreated", "Yangi foydalanuvchi", "Tizimga yangi o'quvchi yoki xodim qo'shilganda"),
+            };
+        }
+
+        @foreach (var (prop, label, desc) in events)
+        {
+            <div class="toggle-row">
+                <div class="toggle-row-info">
+                    <div class="name">@label</div>
+                    <div class="desc">@desc</div>
+                </div>
+                <label class="switch-label">
+                    <input type="checkbox" name="@prop" value="true" class="switch-input"
+                           @(GetBool(prop) ? "checked" : "") />
+                    <span class="switch-slider"></span>
+                </label>
+            </div>
+        }
+    </div>
+
+    <!-- Qabul qiluvchilar -->
+    <div class="settings-section">
+        <h3>Qabul qiluvchilar</h3>
+        <p class="section-desc">Email va SMS bildirishnomalari ushbu manzillarga yuboriladi.</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label asp-for="RecipientEmail" class="form-label"></label>
+                <input asp-for="RecipientEmail" class="form-input" placeholder="admin@example.com" />
+                <span asp-validation-for="RecipientEmail" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RecipientPhone" class="form-label"></label>
+                <input asp-for="RecipientPhone" class="form-input" placeholder="+998 90 123 45 67" />
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Saqlash</button>
+    </div>
+</form>
+
+@functions {
+    bool GetBool(string propName)
+    {
+        var prop = Model.GetType().GetProperty(propName);
+        return prop != null && (bool)(prop.GetValue(Model) ?? false);
+    }
+}

@@ -1,0 +1,152 @@
+@model AccessLog
+@{
+    ViewData["Title"] = $"Kirish #{Model.Id} — batafsil";
+
+    string profilePhotoPath = Model.Student?.PhotoPath
+                              ?? Model.Staff?.PhotoPath
+                              ?? Model.Teacher?.PhotoPath
+                              ?? string.Empty;
+
+    string resultClass = Model.Result switch
+    {
+        AccessResult.Granted => "status-active",
+        AccessResult.Denied => "status-blocked",
+        _ => "status-archived"
+    };
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Kirish/chiqish yozuvi #@Model.Id</h2>
+    <span class="status-badge @resultClass">@Model.Result.GetDisplayName()</span>
+</div>
+
+<div class="detail-grid">
+    <!-- Olingan rasm (snapshot) -->
+    <div class="detail-card">
+        <h4>Yuz tanish paytidagi rasm</h4>
+        @if (!string.IsNullOrEmpty(Model.CapturedImagePath))
+        {
+            <img src="@Model.CapturedImagePath" alt="Captured face"
+                 style="width:100%; max-width:280px; border-radius:8px; border:2px solid var(--border); object-fit:cover;" />
+            <p class="text-muted" style="margin-top:8px; font-size:12px;">
+                Yuz tanish tizimi tomonidan olingan snapshot. Tanilgan yoki noma'lum bo'lsa ham saqlanadi.
+            </p>
+        }
+        else
+        {
+            <div style="padding:32px; text-align:center; background:var(--bg-input); border-radius:8px; border:1px dashed var(--border);">
+                <span style="font-size:32px; opacity:0.4;">📷</span>
+                <p class="text-muted" style="margin-top:8px;">Snapshot saqlanmagan</p>
+            </div>
+        }
+    </div>
+
+    <!-- Foydalanuvchi -->
+    <div class="detail-card">
+        <h4>Foydalanuvchi</h4>
+        <div class="detail-avatar" style="margin-bottom:12px;">
+            @if (!string.IsNullOrEmpty(profilePhotoPath))
+            {
+                <img src="@profilePhotoPath" alt="profile"
+                     style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid var(--border);" />
+            }
+            else
+            {
+                <div class="avatar-lg">?</div>
+            }
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Ism familya:</span>
+            <span><strong>@Model.UserName</strong></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Tur:</span>
+            <span>@Model.UserType</span>
+        </div>
+        @if (Model.Student != null)
+        {
+            <div class="detail-row">
+                <span class="detail-label">ID:</span>
+                <span>#@Model.Student.StudentId</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Profil:</span>
+                <a asp-controller="Users" asp-action="Details" asp-route-id="@Model.Student.Id">Foydalanuvchi sahifasi →</a>
+            </div>
+        }
+        else if (Model.Staff != null)
+        {
+            <div class="detail-row">
+                <span class="detail-label">Lavozim:</span>
+                <span>@Model.Staff.Position</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Profil:</span>
+                <a asp-controller="Staff" asp-action="Details" asp-route-id="@Model.Staff.Id">Xodim sahifasi →</a>
+            </div>
+        }
+    </div>
+
+    <!-- Hodisa ma'lumotlari -->
+    <div class="detail-card">
+        <h4>Kirish/chiqish ma'lumotlari</h4>
+        <div class="detail-row">
+            <span class="detail-label">Vaqt:</span>
+            <span><strong>@Model.Timestamp.ToString("dd.MM.yyyy HH:mm:ss")</strong></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Usul:</span>
+            <span class="method-badge">
+                @(Model.Method == AccessMethod.Face ? "🤖 Yuz" :
+                  Model.Method == AccessMethod.Card ? "💳 Karta" :
+                  Model.Method == AccessMethod.QrCode ? "📱 QR" : "✋ Manual")
+            </span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Natija:</span>
+            <span class="result-badge result-@Model.Result.ToString().ToLower()">@Model.Result.GetDisplayName()</span>
+        </div>
+        @if (Model.FaceConfidence.HasValue)
+        {
+            <div class="detail-row">
+                <span class="detail-label">Aniqlik:</span>
+                <span>@Model.FaceConfidence.Value.ToString("F1")%</span>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(Model.Details))
+        {
+            <div class="detail-row">
+                <span class="detail-label">Tafsilot:</span>
+                <span>@Model.Details</span>
+            </div>
+        }
+    </div>
+
+    <!-- Turniket va kamera -->
+    <div class="detail-card">
+        <h4>Qurilma</h4>
+        <div class="detail-row">
+            <span class="detail-label">Turniket:</span>
+            <span>@(Model.Turnstile?.Name ?? "—")</span>
+        </div>
+        @if (Model.Turnstile != null)
+        {
+            <div class="detail-row">
+                <span class="detail-label">Joylashuv:</span>
+                <span>@(Model.Turnstile.Location ?? "—")</span>
+            </div>
+        }
+        <div class="detail-row">
+            <span class="detail-label">Kamera:</span>
+            <span>@(Model.Camera?.Name ?? "—")</span>
+        </div>
+        @if (Model.Camera != null)
+        {
+            <div class="detail-row">
+                <span class="detail-label">Kamera kodi:</span>
+                <span><code>@Model.Camera.CameraCode</code></span>
+            </div>
+        }
+    </div>
+</div>

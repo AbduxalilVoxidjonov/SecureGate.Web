@@ -1,4 +1,5 @@
-﻿using SecureGate.Web.Models;
+﻿using Microsoft.AspNetCore.Http;
+using SecureGate.Web.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace SecureGate.Web.ViewModels
@@ -6,6 +7,12 @@ namespace SecureGate.Web.ViewModels
     // ==================== STAFF ====================
     public class StaffCreateViewModel
     {
+        [Display(Name = "Yuz rasmi")]
+        public IFormFile? PhotoFile { get; set; }
+
+        // Veb-kamera orqali olingan rasm (base64 data URL: "data:image/png;base64,....")
+        public string? CapturedPhotoBase64 { get; set; }
+
         [Required]
         [Display(Name = "F.I.O")]
         public string FullName { get; set; } = string.Empty;

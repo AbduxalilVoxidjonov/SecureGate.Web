@@ -42,9 +42,11 @@
                     </td>
                     <td>
                         <div class="action-btns">
+                            <a asp-action="Details" asp-route-id="@s.Id" class="btn-icon" title="Batafsil">👁️</a>
+                            <a asp-action="Edit" asp-route-id="@s.Id" class="btn-icon" title="Tahrirlash">✏️</a>
                             <form asp-action="Delete" asp-route-id="@s.Id" method="post" style="display:inline">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn-icon btn-danger-icon" onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">🗑️</button>
+                                <button type="submit" class="btn-icon btn-danger-icon" title="O'chirish" onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">🗑️</button>
                             </form>
                         </div>
                     </td>

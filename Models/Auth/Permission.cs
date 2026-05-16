@@ -11,6 +11,8 @@ namespace SecureGate.Web.Models.Auth
 
         CameraView = 20,
         CameraManage = 21,
+        CameraUserView = 22,
+        CameraUserManage = 23,
 
         TurnstileView = 30,
         TurnstileManage = 31,

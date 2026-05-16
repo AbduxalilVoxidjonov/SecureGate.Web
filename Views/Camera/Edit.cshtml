@@ -1,3 +1,164 @@
-<h1>
-    edit camera
-</h1>
+@model CameraEditViewModel
+@{
+    ViewData["Title"] = $"Tahrirlash — {Model.Name}";
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Kamerani tahrirlash <span style="color: var(--text-muted); font-weight: 400;">(@Model.CameraCode)</span></h2>
+</div>
+
+<div class="form-card">
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom: 14px;"></div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label asp-for="CameraCode" class="form-label"></label>
+                <input asp-for="CameraCode" class="form-input" />
+                <span asp-validation-for="CameraCode" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-input" placeholder="Asosiy kirish — janubiy" />
+                <span asp-validation-for="Name" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Protocol" class="form-label"></label>
+                <select asp-for="Protocol" asp-items="Html.GetEnumSelectList<CameraProtocol>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="CameraModel" class="form-label"></label>
+                <select asp-for="CameraModel" asp-items="Html.GetEnumSelectList<CameraModel>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Quality" class="form-label"></label>
+                <select asp-for="Quality" asp-items="Html.GetEnumSelectList<VideoQuality>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<CameraStatus>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="StreamUrl" class="form-label"></label>
+                <input asp-for="StreamUrl" class="form-input" placeholder="rtsp://192.168.1.10:554/stream" />
+                <span asp-validation-for="StreamUrl" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IpAddress" class="form-label"></label>
+                <input asp-for="IpAddress" class="form-input" placeholder="192.168.1.XX" />
+                <span asp-validation-for="IpAddress" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Port" class="form-label"></label>
+                <input asp-for="Port" type="number" min="1" max="65535" class="form-input" />
+                <span asp-validation-for="Port" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Fps" class="form-label"></label>
+                <input asp-for="Fps" type="number" min="1" max="60" class="form-input" />
+                <span asp-validation-for="Fps" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Username" class="form-input" placeholder="admin" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" type="password" class="form-input" autocomplete="new-password"
+                       placeholder="O'zgartirmasangiz bo'sh qoldiring" />
+                <p style="font-size:11px; color:var(--text-dim); margin-top:4px;">
+                    🔒 Bo'sh qoldirilsa, eski (shifrlangan) parol saqlanadi.
+                </p>
+            </div>
+            <div class="form-group">
+                <label asp-for="CameraGroupId" class="form-label"></label>
+                <select asp-for="CameraGroupId" class="form-select">
+                    <option value="">Guruhsiz</option>
+                    @foreach (var g in Model.AvailableGroups)
+                    {
+                        <option value="@g.Id" selected="@(Model.CameraGroupId == g.Id)">@g.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="form-switches">
+            <label class="switch-label">
+                <input asp-for="FaceRecognitionEnabled" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>Yuz tanish (AI)</span>
+            </label>
+            <label class="switch-label">
+                <input asp-for="ContinuousRecording" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>24/7 yozib olish</span>
+            </label>
+            <label class="switch-label">
+                <input asp-for="MotionDetection" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>Harakat aniqlash</span>
+            </label>
+        </div>
+
+        <!-- Real-time ulanish testi -->
+        <div style="margin: 18px 0; padding: 14px; background: var(--bg-input); border-radius: 8px; border: 1px dashed var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                <div>
+                    <strong>Ulanishni tekshirish</strong>
+                    <p style="font-size:12px; color:var(--text-muted); margin:4px 0 0;">
+                        IP va Port orqali kameraga TCP ulanishni sinash.
+                    </p>
+                </div>
+                <button type="button" class="btn btn-secondary" id="testConnBtn">🔌 Test ulanish</button>
+            </div>
+            <div id="testResult" style="margin-top:10px; font-size:13px;"></div>
+        </div>
+
+        <div class="form-actions">
+            <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('testConnBtn').addEventListener('click', async () => {
+        const ip = document.querySelector('input[name="IpAddress"]').value.trim();
+        const port = parseInt(document.querySelector('input[name="Port"]').value, 10);
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const result = document.getElementById('testResult');
+        const btn = document.getElementById('testConnBtn');
+
+        if (!ip) {
+            result.innerHTML = '<span style="color:var(--danger);">IP manzilni kiriting</span>';
+            return;
+        }
+
+        btn.disabled = true;
+        result.innerHTML = '<span style="color:var(--text-muted);">⏳ Tekshirilmoqda...</span>';
+
+        try {
+            const res = await fetch('/Camera/TestConnection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: `ip=${encodeURIComponent(ip)}&port=${port}`
+            });
+            const data = await res.json();
+            const color = data.success ? 'var(--success, #16a34a)' : 'var(--danger, #dc2626)';
+            result.innerHTML = `<span style="color:${color};">${data.message}</span>`;
+        } catch (ex) {
+            result.innerHTML = '<span style="color:var(--danger);">Server xatosi</span>';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+</script>
+}

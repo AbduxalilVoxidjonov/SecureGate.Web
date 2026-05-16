@@ -21,6 +21,7 @@ namespace SecureGate.Web.Data
         public DbSet<Alert> Alerts => Set<Alert>();
         public DbSet<Setting> Settings => Set<Setting>();
         public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
+        public DbSet<CameraUser> CameraUsers => Set<CameraUser>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -34,6 +35,12 @@ namespace SecureGate.Web.Data
 
             modelBuilder.Entity<Setting>()
                 .HasIndex(s => s.Key)
+                .IsUnique();
+
+            // Kamera kodi (CAM-XX) butun jadval bo'yicha noyob bo'lishi shart —
+            // race condition oldini olish uchun (CameraService'da Id'dan hosil qilinadi).
+            modelBuilder.Entity<Camera>()
+                .HasIndex(c => c.CameraCode)
                 .IsUnique();
 
             // Student -> BlockedUser (one-to-one)
@@ -85,6 +92,37 @@ namespace SecureGate.Web.Data
             modelBuilder.Entity<UserPermission>()
                 .HasIndex(up => new { up.UserId, up.Permission })
                 .IsUnique();
+
+            // CameraUser konfiguratsiyasi
+            modelBuilder.Entity<CameraUser>()
+                .HasOne(c => c.Camera)
+                .WithMany()
+                .HasForeignKey(c => c.CameraId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<CameraUser>()
+                .HasOne(c => c.Student)
+                .WithMany()
+                .HasForeignKey(c => c.StudentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<CameraUser>()
+                .HasOne(c => c.Teacher)
+                .WithMany()
+                .HasForeignKey(c => c.TeacherId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<CameraUser>()
+                .HasOne(c => c.Staff)
+                .WithMany()
+                .HasForeignKey(c => c.StaffId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<CameraUser>()
+                .HasIndex(c => c.DetectedAt);
+
+            modelBuilder.Entity<CameraUser>()
+                .HasIndex(c => new { c.FirstName, c.LastName });
         }
     }
 }

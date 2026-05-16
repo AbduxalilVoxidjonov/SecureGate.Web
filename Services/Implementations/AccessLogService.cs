@@ -46,6 +46,12 @@ namespace SecureGate.Web.Services.Implementations
             };
         }
 
+        public async Task<AccessLog?> GetByIdAsync(int id) =>
+            await _db.AccessLogs
+                .Include(a => a.Student).Include(a => a.Teacher).Include(a => a.Staff)
+                .Include(a => a.Turnstile).Include(a => a.Camera)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
         public async Task<AccessLog> LogAccessAsync(AccessLog log)
         {
             _db.AccessLogs.Add(log);

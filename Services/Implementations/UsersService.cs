@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using SecureGate.Web.Data;
 using SecureGate.Web.Models;
 using SecureGate.Web.Services.Interfaces;
@@ -10,11 +11,19 @@ namespace SecureGate.Web.Services.Implementations
     {
         private readonly AppDbContext _db;
         private readonly IPhotoStorageService _photoStorage;
+        private readonly IFaceRecognitionClient _faceClient;
+        private readonly ILogger<UsersService> _logger;
 
-        public UsersService(AppDbContext db, IPhotoStorageService photoStorage)
+        public UsersService(
+            AppDbContext db,
+            IPhotoStorageService photoStorage,
+            IFaceRecognitionClient faceClient,
+            ILogger<UsersService> logger)
         {
             _db = db;
             _photoStorage = photoStorage;
+            _faceClient = faceClient;
+            _logger = logger;
         }
 
         public async Task<UsersListViewModel> GetStudentsAsync(string? search, int? groupId, StudentStatus? status, int page, int pageSize)
@@ -77,13 +86,18 @@ namespace SecureGate.Web.Services.Implementations
             _db.Students.Add(student);
             await _db.SaveChangesAsync();
 
-            // FaceData yozuvi — yuz encoding'i keyinroq face-recognition servisi
-            // tomonidan hisoblanadi va shu yozuvga yoziladi.
+            // FaceData yozuvi — encoding Python face-worker servisi orqali hisoblanadi.
+            // Python yo'q yoki yuz topilmagan bo'lsa, encoding null bo'lib qoladi
+            // (admin keyinroq "Qayta hisoblash" tugmasi orqali sinab ko'rishi mumkin).
+            var encoding = await _faceClient.ComputeEmbeddingAsync(photoPath);
+            if (encoding == null)
+                _logger.LogWarning("Foydalanuvchi {Id} uchun encoding hisoblanmadi (Python yo'q yoki yuz topilmadi)", student.Id);
+
             _db.FaceData.Add(new FaceData
             {
                 StudentId = student.Id,
                 ImagePath = photoPath,
-                FaceEncoding = null,
+                FaceEncoding = encoding != null ? JsonSerializer.Serialize(encoding) : null,
                 ConfidenceLevel = FaceConfidenceLevel.High,
                 IsActive = student.FaceRecognitionEnabled
             });
@@ -119,12 +133,15 @@ namespace SecureGate.Web.Services.Implementations
             student.SmsNotification = model.SmsNotification;
             student.UpdatedAt = DateTime.UtcNow;
 
-            // Yangi rasm yuklangan bo'lsa - eskisini o'chirib, FaceData'ni yangilash
+            // Yangi rasm yuklangan bo'lsa - eskisini o'chirib, encodingni qayta hisoblash
             var newPhotoPath = await _photoStorage.SavePhotoAsync(model.PhotoFile, model.CapturedPhotoBase64, "users");
             if (!string.IsNullOrEmpty(newPhotoPath))
             {
                 _photoStorage.DeletePhoto(student.PhotoPath);
                 student.PhotoPath = newPhotoPath;
+
+                var newEncoding = await _faceClient.ComputeEmbeddingAsync(newPhotoPath);
+                var encodingJson = newEncoding != null ? JsonSerializer.Serialize(newEncoding) : null;
 
                 var face = await _db.FaceData.FirstOrDefaultAsync(f => f.StudentId == id);
                 if (face == null)
@@ -133,6 +150,7 @@ namespace SecureGate.Web.Services.Implementations
                     {
                         StudentId = id,
                         ImagePath = newPhotoPath,
+                        FaceEncoding = encodingJson,
                         ConfidenceLevel = FaceConfidenceLevel.High,
                         IsActive = student.FaceRecognitionEnabled
                     });
@@ -140,7 +158,7 @@ namespace SecureGate.Web.Services.Implementations
                 else
                 {
                     face.ImagePath = newPhotoPath;
-                    face.FaceEncoding = null; // qayta hisoblash kerak
+                    face.FaceEncoding = encodingJson;
                     face.IsActive = student.FaceRecognitionEnabled;
                 }
             }

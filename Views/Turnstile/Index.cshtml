@@ -15,6 +15,30 @@
     @foreach (var t in Model)
     {
         <div class="turnstile-card" id="turnstile-@t.Id" data-id="@t.Id">
+            <div class="turnstile-camera-preview">
+                @if (t.LinkedCamera != null)
+                {
+                    <div class="camera-live-feed" data-stream="@t.LinkedCamera.StreamUrl">
+                        <span class="camera-live-badge">● LIVE</span>
+                        <span class="camera-nosave-badge" title="Bu oqim diskka yozilmaydi">Yozuv saqlanmaydi</span>
+                        <div class="camera-feed-info">
+                            <span class="camera-feed-code">📹 @t.LinkedCamera.CameraCode</span>
+                            <span class="camera-feed-name">@t.LinkedCamera.Name</span>
+                        </div>
+                        @if (t.LinkedCamera.FaceRecognitionEnabled)
+                        {
+                            <span class="camera-ai-badge">🤖 AI</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="camera-live-feed camera-live-empty">
+                        <span class="camera-nocam-icon">📷</span>
+                        <span>Kamera biriktirilmagan</span>
+                    </div>
+                }
+            </div>
             <div class="turnstile-header">
                 <div class="turnstile-name">
                     <span class="turnstile-icon">🚪</span>

@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "ContainingType": "SecureGate.Web.Controllers.Api.FaceRecognitionApiController",
+    "Method": "GetCameras",
+    "RelativePath": "api/face-recognition/cameras",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SecureGate.Web.Controllers.Api.FaceRecognitionApiController",
+    "Method": "ReceiveEvent",
+    "RelativePath": "api/face-recognition/events",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "SecureGate.Web.ViewModels.FaceEventDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SecureGate.Web.Controllers.Api.FaceRecognitionApiController",
+    "Method": "GetKnownFaces",
+    "RelativePath": "api/face-recognition/known-faces",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]

@@ -1,0 +1,281 @@
+@{
+    ViewData["Title"] = "Sozlamalar — Dokumentatsiya";
+}
+
+<div class="page-header"><h2>Tizim sozlamalari</h2></div>
+
+@await Html.PartialAsync("_Tabs")
+
+<style>
+    .docs-layout { display:grid; grid-template-columns: 240px 1fr; gap: 24px; }
+    .docs-toc { position: sticky; top: 20px; align-self: start; }
+    .docs-toc h4 { margin: 0 0 10px; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .docs-toc a { display:block; padding: 6px 10px; color: #475569; text-decoration: none; font-size: 13px; border-left: 2px solid transparent; }
+    .docs-toc a:hover { color: #2563eb; border-left-color: #cbd5e1; }
+    .docs-content h3 { margin-top: 0; padding-top: 0; font-size: 18px; }
+    .docs-content h4 { margin: 18px 0 8px; font-size: 15px; color: #0f172a; }
+    .docs-content p { font-size: 14px; line-height: 1.6; color: #334155; }
+    .docs-content ol, .docs-content ul { font-size: 14px; line-height: 1.7; color: #334155; }
+    .docs-content code { background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:13px; color:#0f172a; }
+    .alert-info { background:#eff6ff; border:1px solid #bfdbfe; border-left: 4px solid #2563eb; padding: 12px 16px; border-radius: 8px; margin: 14px 0; font-size: 13px; color:#1e3a8a; }
+    .alert-warn { background:#fffbeb; border:1px solid #fde68a; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 8px; margin: 14px 0; font-size: 13px; color:#78350f; }
+    @@media (max-width: 900px) {
+        .docs-layout { grid-template-columns: 1fr; }
+        .docs-toc { position: static; }
+    }
+</style>
+
+<div class="docs-layout">
+    <aside class="docs-toc">
+        <h4>Mundarija</h4>
+        <a href="#intro">Umumiy ma'lumot</a>
+        <a href="#camera-add">IP kamera ulash</a>
+        <a href="#camera-protocols">Qo'llab-quvvatlanadigan protokollar</a>
+        <a href="#camera-troubleshoot">Kamera nosozliklari</a>
+        <a href="#turnstile-add">Turniket ulash</a>
+        <a href="#turnstile-net">Tarmoq sozlamalari</a>
+        <a href="#api">REST API</a>
+        <a href="#webhook">Webhook integratsiyasi</a>
+    </aside>
+
+    <div class="docs-content">
+        <!-- INTRO -->
+        <div class="settings-section" id="intro">
+            <h3>📖 Umumiy ma'lumot</h3>
+            <p>
+                SecureGate — bu IP-kamera va turniketlarni yagona platformaga birlashtiradigan
+                kirish nazorati tizimi. Ushbu hujjatda kamera va turniketlarni ulash, REST API'dan
+                foydalanish va webhook'larni sozlash bo'yicha texnik ko'rsatmalar berilgan.
+            </p>
+
+            <div class="alert-info">
+                <strong>Tavsiya:</strong> Ulash oldidan kamera va turniketning IP manzili, port, foydalanuvchi nomi
+                va paroli (agar bo'lsa) ma'lum bo'lishi kerak. Qurilma SecureGate server bilan bir tarmoqda bo'lishi shart.
+            </div>
+        </div>
+
+        <!-- CAMERA ADD -->
+        <div class="settings-section" id="camera-add">
+            <h3>📷 IP kamerani ulash</h3>
+
+            <h4>1. Kamerani tarmoqqa ulash</h4>
+            <ol>
+                <li>Kamerani Ethernet kabeli yoki PoE switch orqali tarmoqqa ulang.</li>
+                <li>Kamera ishlab chiqaruvchining ilovasidan (Hikvision iVMS, Dahua Config Tool va h.k.) foydalanib unga statik IP manzil bering. Tavsiya: <code>192.168.1.10–192.168.1.99</code> oralig'ida.</li>
+                <li>Kamerada RTSP protokolini yoqing va port (odatda <code>554</code>)ni eslab qoling.</li>
+                <li>Brauzerdan <code>http://&lt;kamera-ip&gt;</code> orqali kameraga kirib, foydalanuvchi nomi va parol yarating.</li>
+            </ol>
+
+            <h4>2. SecureGate'ga qo'shish</h4>
+            <ol>
+                <li>"Kameralar" → "+ Yangi kamera" bo'limiga o'ting.</li>
+                <li>Quyidagi maydonlarni to'ldiring:
+                    <ul>
+                        <li><code>Nom</code> — kamera nomi (masalan, "Asosiy kirish — janub")</li>
+                        <li><code>IP manzil</code> — kamera IP'si</li>
+                        <li><code>Port</code> — odatda 554 (RTSP)</li>
+                        <li><code>Foydalanuvchi nomi</code> va <code>parol</code></li>
+                        <li><code>Stream URL</code> — to'liq RTSP URL (pastdagi shabloni qarang)</li>
+                        <li><code>Protokol</code> — RTSP, ONVIF yoki HTTP/MJPEG</li>
+                    </ul>
+                </li>
+                <li>"Yuz tanish yoqilgan" tugmasini yoqing — bu kameraga kelgan tasvirlar yuz tanish servisiga uzatiladi.</li>
+                <li>Kerak bo'lsa, kamerani bir guruhga biriktiring ("Kamera guruhlari" bo'limidan).</li>
+            </ol>
+
+            <h4>3. RTSP URL shablonlari</h4>
+            <div class="code-block" style="white-space:pre-wrap;">Hikvision:
+  rtsp://&lt;user&gt;:&lt;pass&gt;@@&lt;ip&gt;:554/Streaming/Channels/101
+
+Dahua:
+  rtsp://&lt;user&gt;:&lt;pass&gt;@@&lt;ip&gt;:554/cam/realmonitor?channel=1&amp;subtype=0
+
+Axis:
+  rtsp://&lt;user&gt;:&lt;pass&gt;@@&lt;ip&gt;:554/axis-media/media.amp
+
+ONVIF (umumiy):
+  Tizim avtomatik aniqlaydi — faqat IP, port va credentials kifoya.</div>
+        </div>
+
+        <!-- PROTOCOLS -->
+        <div class="settings-section" id="camera-protocols">
+            <h3>🔌 Qo'llab-quvvatlanadigan protokollar</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Protokol</th>
+                        <th>Default port</th>
+                        <th>Tavsif</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>RTSP</code></td><td>554</td><td>Eng keng tarqalgan, real vaqt video stream</td></tr>
+                    <tr><td><code>ONVIF</code></td><td>80 / 8000</td><td>Universal kamera boshqaruv protokoli (Profile S/T)</td></tr>
+                    <tr><td><code>HTTP / MJPEG</code></td><td>80</td><td>Eski kameralar uchun, kichik fps</td></tr>
+                    <tr><td><code>RTMP</code></td><td>1935</td><td>Pul/strim provayderlar uchun (kamdan-kam ishlatiladi)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CAMERA TROUBLESHOOT -->
+        <div class="settings-section" id="camera-troubleshoot">
+            <h3>🛠️ Kamera nosozliklari</h3>
+
+            <h4>Kamera "Oflayn" deb ko'rinmoqda</h4>
+            <ul>
+                <li>Server kamerani <code>ping</code> qila olyaptimi tekshiring.</li>
+                <li>Stream URL'da foydalanuvchi/parol to'g'rimi? VLC orqali sinab ko'ring: <code>vlc rtsp://...</code></li>
+                <li>Kamera firewall'i RTSP portni ochib qo'yganmi (554/TCP).</li>
+                <li>Kamera maksimum bog'lanish soni — ba'zi modellar bir vaqtning o'zida 2-3 dan ortiq mijozni qabul qilmaydi.</li>
+            </ul>
+
+            <h4>Tasvir kelmoqda, lekin yuz tanish ishlamayapti</h4>
+            <ul>
+                <li>Kamera sifati FullHD yoki undan yuqori bo'lsin (HD da yuz aniqlash sifati past).</li>
+                <li>Yorug'lik yetarli — yuzga qarshi yorug'lik tushmasligi kerak.</li>
+                <li>Kamera burchagi — yuzga deyarli 90° (oldindan) qarashi tavsiya etiladi.</li>
+                <li>FaceData jadvalida foydalanuvchining encoding'i hisoblanganmi tekshiring (bu yuz-tanish servisi tomonidan to'ldiriladi).</li>
+            </ul>
+        </div>
+
+        <!-- TURNSTILE ADD -->
+        <div class="settings-section" id="turnstile-add">
+            <h3>🚪 Turniketni ulash</h3>
+
+            <h4>1. Turniket apparati</h4>
+            <p>
+                SecureGate quyidagi turdagi turniketlarni qo'llab-quvvatlaydi: tripod, swing-gate, full-height,
+                speed-gate. Boshqaruv plataforma esa odatda Wiegand 26/34 yoki TCP/IP relay sifatida keladi.
+            </p>
+
+            <h4>2. SecureGate'ga qo'shish</h4>
+            <ol>
+                <li>"Turniketlar" → "+ Yangi turniket" bo'limiga o'ting.</li>
+                <li>To'ldiring:
+                    <ul>
+                        <li><code>Nom</code> — turniket nomi (masalan, "Asosiy kirish — chap")</li>
+                        <li><code>Joylashuv</code> — qaysi binoda/qavatda</li>
+                        <li><code>IP manzil</code> — turniket kontrolleri IP'si</li>
+                        <li><code>Bog'langan kamera</code> — qaysi kamera yuzni tanish uchun ishlatiladi</li>
+                    </ul>
+                </li>
+                <li>Saqlanganidan keyin "Test ochish" tugmasini bosib, turniketning ochilishini tekshiring.</li>
+                <li>Foydalanuvchi yaratishda yoki tahrirlashda "Ruxsat etilgan turniketlar" ro'yxatida shu turniketni belgilang.</li>
+            </ol>
+
+            <div class="alert-warn">
+                <strong>Xavfsizlik:</strong> Turniket kontrolleri admin paroli default qiymatda qoldirilmasin.
+                Ko'pchilik xitoy ishlab chiqaruvchilarining default paroli — <code>admin/admin</code> yoki <code>admin/12345</code>.
+            </div>
+        </div>
+
+        <!-- NETWORK -->
+        <div class="settings-section" id="turnstile-net">
+            <h3>🌐 Tarmoq sozlamalari</h3>
+            <p>SecureGate va qurilmalar (kamera, turniket) o'rtasidagi tarmoq talablari:</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr><th>Yo'nalish</th><th>Protokol/port</th><th>Maqsad</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Server → Kamera</td><td>TCP 554 (RTSP), TCP 80/8000 (ONVIF)</td><td>Video stream va PTZ boshqaruvi</td></tr>
+                    <tr><td>Server → Turniket</td><td>TCP 8080 yoki SDK porti</td><td>Eshik ochish/yopish buyruqlari</td></tr>
+                    <tr><td>Turniket → Server</td><td>TCP 5000 (SignalR)</td><td>Real vaqt status hodisalari</td></tr>
+                    <tr><td>Admin brauzeri → Server</td><td>HTTPS 443</td><td>Veb-interfeys</td></tr>
+                </tbody>
+            </table>
+
+            <p style="margin-top:14px;">
+                Tarmoq ajratish tavsiya etiladi: kamera va turniketlarni alohida VLAN'ga qo'ying.
+                Server bu VLAN'ga faqat zarur portlar bo'yicha kira oladigan firewall qoidalarini sozlang.
+            </p>
+        </div>
+
+        <!-- API -->
+        <div class="settings-section" id="api">
+            <h3>🔌 REST API</h3>
+            <p>
+                Tashqi tizimlar SecureGate'ga REST API orqali ulanishi mumkin.
+                Barcha so'rovlarda <code>Authorization: Bearer &lt;API_KEY&gt;</code> header bo'lishi kerak
+                (API kalitni "API va Webhook" bo'limidan oling).
+            </p>
+
+            <h4>Asosiy endpoint'lar</h4>
+            <div class="code-block" style="white-space:pre-wrap;">GET    /api/v1/users           — barcha foydalanuvchilar
+GET    /api/v1/users/{id}      — bitta foydalanuvchi
+POST   /api/v1/users           — yangi foydalanuvchi yaratish
+PUT    /api/v1/users/{id}      — yangilash
+DELETE /api/v1/users/{id}      — o'chirish
+
+GET    /api/v1/cameras         — kameralar ro'yxati
+POST   /api/v1/cameras/{id}/snapshot — joriy kadr
+
+GET    /api/v1/turnstiles      — turniketlar
+POST   /api/v1/turnstiles/{id}/open  — eshik ochish
+POST   /api/v1/turnstiles/{id}/close — yopish
+
+GET    /api/v1/access-logs     — kirish jurnali (sahifalangan)</div>
+
+            <h4>Misol so'rov</h4>
+            <div class="code-block" style="white-space:pre-wrap;">curl -X POST https://securegate.example.com/api/v1/turnstiles/3/open \
+  -H "Authorization: Bearer sgk_..." \
+  -H "Content-Type: application/json"</div>
+
+            <div class="alert-info">
+                <strong>Eslatma:</strong> REST API hozircha "rejada" holatida.
+                Hozirgi versiyada barcha amallar veb-interfeys orqali bajariladi.
+                API yo'naltirilgan yo'l xaritasi: 2026-yil iyun oyi.
+            </div>
+        </div>
+
+        <!-- WEBHOOK -->
+        <div class="settings-section" id="webhook">
+            <h3>🔔 Webhook integratsiyasi</h3>
+            <p>
+                Sizning serveringizga real vaqtda hodisalarni yuborish uchun "API va Webhook" bo'limida
+                webhook URL'ni belgilang.
+            </p>
+
+            <h4>Imzoni tekshirish (HMAC-SHA256)</h4>
+            <p>
+                Har bir so'rovda <code>X-SecureGate-Signature</code> headeri keladi.
+                Bu — payload'ning HMAC-SHA256 hashi (siz belgilagan maxfiy kalit bilan).
+            </p>
+
+            <h4>Node.js misol</h4>
+            <div class="code-block" style="white-space:pre-wrap;">const crypto = require('crypto');
+
+app.post('/webhooks/securegate', (req, res) => {
+  const signature = req.headers['x-securegate-signature'];
+  const expected = crypto
+    .createHmac('sha256', process.env.WEBHOOK_SECRET)
+    .update(JSON.stringify(req.body))
+    .digest('hex');
+
+  if (signature !== expected) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  const { event, data } = req.body;
+  console.log(event, data);
+  res.sendStatus(200);
+});</div>
+
+            <h4>Python misol</h4>
+            <div class="code-block" style="white-space:pre-wrap;">import hmac, hashlib, json
+from flask import request, abort
+
+@@app.route('/webhooks/securegate', methods=['POST'])
+def securegate_webhook():
+    sig = request.headers.get('X-SecureGate-Signature')
+    body = request.get_data()
+    expected = hmac.new(SECRET.encode(), body, hashlib.sha256).hexdigest()
+    if sig != expected:
+        abort(401)
+    payload = json.loads(body)
+    print(payload['event'], payload['data'])
+    return '', 200</div>
+        </div>
+    </div>
+</div>

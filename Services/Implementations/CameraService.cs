@@ -9,7 +9,13 @@ namespace SecureGate.Web.Services.Implementations
     public class CameraService : ICameraService
     {
         private readonly AppDbContext _db;
-        public CameraService(AppDbContext db) => _db = db;
+        private readonly ICameraCredentialProtector _protector;
+
+        public CameraService(AppDbContext db, ICameraCredentialProtector protector)
+        {
+            _db = db;
+            _protector = protector;
+        }
 
         public async Task<CameraGridViewModel> GetCamerasAsync(int? groupId, CameraStatus? status, string? search)
         {
@@ -33,30 +39,47 @@ namespace SecureGate.Web.Services.Implementations
 
         public async Task<Camera> CreateAsync(CameraCreateViewModel model)
         {
-            var lastCam = await _db.Cameras.OrderByDescending(c => c.Id).FirstOrDefaultAsync();
-            var nextNum = (lastCam?.Id ?? 0) + 1;
-
-            var camera = new Camera
+            // Race-condition'siz CameraCode hosil qilish:
+            //   1) Tranzaksiyada kamerani CameraCode'siz saqlaymiz (IDENTITY Id'ni olamiz)
+            //   2) Id asosida CameraCode hosil qilib, ikkinchi SaveChanges'da yozamiz
+            // SQL Server IDENTITY ustuni atomiк — ikkita parallel insert farqli Id oladi.
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            try
             {
-                CameraCode = $"CAM-{nextNum:D2}",
-                Name = model.Name,
-                Protocol = model.Protocol,
-                CameraModel = model.CameraModel,
-                StreamUrl = model.StreamUrl,
-                IpAddress = model.IpAddress,
-                Port = model.Port,
-                Username = model.Username,
-                Password = model.Password,
-                CameraGroupId = model.CameraGroupId,
-                Quality = model.Quality,
-                FaceRecognitionEnabled = model.FaceRecognitionEnabled,
-                ContinuousRecording = model.ContinuousRecording,
-                MotionDetection = model.MotionDetection
-            };
-            _db.Cameras.Add(camera);
-            await _db.SaveChangesAsync();
-            return camera;
+                var camera = new Camera
+                {
+                    CameraCode = string.Empty, // vaqtinchalik, pastda to'ldiramiz
+                    Name = model.Name,
+                    Protocol = model.Protocol,
+                    CameraModel = model.CameraModel,
+                    StreamUrl = model.StreamUrl,
+                    IpAddress = model.IpAddress,
+                    Port = model.Port,
+                    Username = model.Username,
+                    Password = _protector.Protect(model.Password),   // Shifrlash
+                    CameraGroupId = model.CameraGroupId,
+                    Quality = model.Quality,
+                    FaceRecognitionEnabled = model.FaceRecognitionEnabled,
+                    ContinuousRecording = model.ContinuousRecording,
+                    MotionDetection = model.MotionDetection
+                };
+
+                _db.Cameras.Add(camera);
+                await _db.SaveChangesAsync(); // Id avtomatik to'ldiriladi
+
+                camera.CameraCode = $"CAM-{camera.Id:D2}";
+                await _db.SaveChangesAsync();
+
+                await tx.CommitAsync();
+                return camera;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
         }
+
         public async Task<bool> UpdateAsync(CameraEditViewModel model)
         {
             var camera = await _db.Cameras.FindAsync(model.Id);
@@ -72,7 +95,14 @@ namespace SecureGate.Web.Services.Implementations
             camera.IpAddress = model.IpAddress;
             camera.Port = model.Port;
             camera.Username = model.Username;
-            camera.Password = model.Password;
+
+            // Parol faqat foydalanuvchi yangi qiymat kiritgan bo'lsa yangilanadi.
+            // Bo'sh qoldirilsa — eski (shifrlangan) parol saqlanadi.
+            if (!string.IsNullOrEmpty(model.Password))
+            {
+                camera.Password = _protector.Protect(model.Password);
+            }
+
             camera.CameraGroupId = model.CameraGroupId;
             camera.Quality = model.Quality;
             camera.Status = model.Status;
@@ -83,7 +113,6 @@ namespace SecureGate.Web.Services.Implementations
 
             try
             {
-                _db.Cameras.Update(camera);
                 await _db.SaveChangesAsync();
                 return true;
             }
@@ -91,6 +120,25 @@ namespace SecureGate.Web.Services.Implementations
             {
                 return false;
             }
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var camera = await _db.Cameras.FindAsync(id);
+            if (camera == null) return false;
+
+            var accessLogs = await _db.AccessLogs.Where(a => a.CameraId == id).ToListAsync();
+            foreach (var log in accessLogs) log.CameraId = null;
+
+            var alerts = await _db.Alerts.Where(a => a.CameraId == id).ToListAsync();
+            foreach (var alert in alerts) alert.CameraId = null;
+
+            var turnstiles = await _db.Turnstiles.Where(t => t.LinkedCameraId == id).ToListAsync();
+            foreach (var t in turnstiles) t.LinkedCameraId = null;
+
+            _db.Cameras.Remove(camera);
+            await _db.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<CameraGroup>> GetGroupsAsync() =>

@@ -3,7 +3,13 @@
     "allow": [
       "Bash(dotnet build *)",
       "Bash(sqllocaldb stop *)",
-      "Bash(sqllocaldb start *)"
+      "Bash(sqllocaldb start *)",
+      "Bash(dotnet ef *)",
+      "Bash(taskkill /PID 18172 /F)",
+      "PowerShell(Stop-Process *)",
+      "Bash(git check-ignore *)",
+      "Bash(git add *)",
+      "Bash(git reset *)"
     ]
   }
 }

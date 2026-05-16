@@ -46,6 +46,10 @@ namespace SecureGate.Web.Models
         // Yuz tanish bo'lsa
         public double? FaceConfidence { get; set; }
 
+        // Yuz tanish paytida olingan rasm (tanilgan yoki tanilmagan bo'lsa ham saqlanadi)
+        [Display(Name = "Olingan rasm")]
+        public string? CapturedImagePath { get; set; }
+
         [NotMapped]
         public string UserName
         {

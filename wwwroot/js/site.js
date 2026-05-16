@@ -82,3 +82,34 @@ async function postAction(url, data = {}) {
         return { success: false };
     }
 }
+
+// ===== THEME TOGGLE =====
+function initThemeToggle() {
+    const btn = document.getElementById('themeToggle');
+    const icon = document.getElementById('themeToggleIcon');
+    if (!btn || !icon) return;
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+
+    function syncIcon() {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        icon.textContent = current === 'light' ? '☀️' : '🌙';
+    }
+
+    syncIcon();
+
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = current === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        try { localStorage.setItem('theme', next); } catch (err) { }
+        syncIcon();
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initThemeToggle);
+} else {
+    initThemeToggle();
+}

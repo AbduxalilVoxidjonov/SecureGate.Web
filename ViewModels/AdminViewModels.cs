@@ -1,3 +1,4 @@
+using SecureGate.Web.Models;
 using SecureGate.Web.Models.Auth;
 using System.ComponentModel.DataAnnotations;
 
@@ -16,14 +17,9 @@ namespace SecureGate.Web.ViewModels
 
     public class AdminCreateViewModel
     {
-        [Required(ErrorMessage = "To'liq ism majburiy")]
-        [Display(Name = "To'liq ism")]
-        public string FullName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Email majburiy")]
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string Email { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Xodimni tanlash majburiy")]
+        [Display(Name = "Xodim")]
+        public int? StaffId { get; set; }
 
         [Required(ErrorMessage = "Parol majburiy")]
         [DataType(DataType.Password)]
@@ -38,6 +34,9 @@ namespace SecureGate.Web.ViewModels
 
         [Display(Name = "Ruxsatlar")]
         public List<Permission> SelectedPermissions { get; set; } = new();
+
+        // Tanlash uchun ro'yxat — POST'da to'ldirilmaydi, faqat GET'da ko'rsatiladi
+        public List<Staff> AvailableStaff { get; set; } = new();
     }
 
     public class AdminEditViewModel

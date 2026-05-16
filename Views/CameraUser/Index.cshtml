@@ -1,0 +1,182 @@
+@model CameraUserIndexViewModel
+@using SecureGate.Web.Models
+@using SecureGate.Web.Models.Auth
+@inject SecureGate.Web.Services.Interfaces.IPermissionService PermissionService
+@{
+    ViewData["Title"] = "Kamera foydalanuvchilari";
+    bool canManage = User.HasPermission(Permission.CameraUserManage, PermissionService);
+}
+
+<div class="page-header">
+    <h2>Kamera foydalanuvchilari</h2>
+    <div style="display:flex; gap:8px;">
+        <a asp-action="Stats" class="btn btn-secondary">📊 Statistika</a>
+        @if (canManage)
+        {
+            <a asp-action="Create" class="btn btn-primary">+ Qo'lda qo'shish</a>
+        }
+    </div>
+</div>
+
+<!-- Statistika kartochkalari -->
+<div class="stats-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; margin-bottom:20px;">
+    <div class="stat-card">
+        <div class="stat-card-title">Jami yozuvlar</div>
+        <div class="stat-card-value">@Model.TotalCount</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-title">Bugun</div>
+        <div class="stat-card-value">@Model.TodayCount</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-title">Noma'lum</div>
+        <div class="stat-card-value" style="color: var(--danger);">@Model.UnknownCount</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-title">Unikal kishilar</div>
+        <div class="stat-card-value">@Model.UniquePeopleCount</div>
+    </div>
+</div>
+
+<!-- Filtrlar -->
+<form method="get" class="filter-bar" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+    <input type="text" name="search" value="@Model.SearchTerm" placeholder="Ism, familiya yoki izoh bo'yicha qidirish..." class="form-input" style="flex:1; min-width:220px;" />
+
+    <select name="cameraId" class="form-select" style="min-width:160px;">
+        <option value="">— Barcha kameralar —</option>
+        @foreach (var c in Model.Cameras)
+        {
+            <option value="@c.Id" selected="@(Model.CameraId == c.Id)">@c.Name</option>
+        }
+    </select>
+
+    <select name="userType" class="form-select" style="min-width:140px;">
+        <option value="">— Tur —</option>
+        @foreach (var t in Enum.GetValues<CameraUserType>())
+        {
+            <option value="@t" selected="@(Model.UserType == t)">@t.GetDisplayName()</option>
+        }
+    </select>
+
+    <input type="date" name="dateFrom" value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))" class="form-input" style="min-width:140px;" />
+    <input type="date" name="dateTo" value="@(Model.DateTo?.ToString("yyyy-MM-dd"))" class="form-input" style="min-width:140px;" />
+
+    <select name="reviewedOnly" class="form-select" style="min-width:160px;">
+        <option value="">— Holat —</option>
+        <option value="true" selected="@(Model.ReviewedOnly == true)">Ko'rib chiqilgan</option>
+        <option value="false" selected="@(Model.ReviewedOnly == false)">Yangi</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">🔍 Qidirish</button>
+    <a asp-action="Index" class="btn btn-secondary">Tozalash</a>
+</form>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Rasm</th>
+                <th>Ism familiya</th>
+                <th>Tur</th>
+                <th>Kamera</th>
+                <th>Aniqlangan vaqt</th>
+                <th>Aniqlik</th>
+                <th>Holat</th>
+                <th>Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Items.Any())
+            {
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">
+                        Yozuv topilmadi
+                    </td>
+                </tr>
+            }
+            else
+            {
+                foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.CapturedImagePath))
+                            {
+                                <img src="@item.CapturedImagePath" alt="@item.FullName"
+                                     style="width:42px; height:42px; border-radius:50%; object-fit:cover; border:1px solid var(--border);" />
+                            }
+                            else
+                            {
+                                <div class="user-avatar-sm">@item.Initials</div>
+                            }
+                        </td>
+                        <td><strong>@item.FullName</strong></td>
+                        <td>
+                            <span class="access-badge access-@item.UserType.ToString().ToLower()">@item.UserType.GetDisplayName()</span>
+                        </td>
+                        <td>@(item.Camera?.Name ?? "—")</td>
+                        <td>@item.DetectedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>
+                            @if (item.Confidence.HasValue)
+                            {
+                                <span>@item.Confidence.Value.ToString("F1")%</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.IsReviewed)
+                            {
+                                <span class="status-badge status-active">Ko'rib chiqilgan</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-archived">Yangi</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="action-btns">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn-icon" title="Batafsil">👁️</a>
+                                @if (canManage)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn-icon" title="Tahrirlash">✏️</a>
+                                    <form asp-action="ToggleReviewed" asp-route-id="@item.Id" method="post" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="reviewed" value="@((!item.IsReviewed).ToString().ToLower())" />
+                                        <button type="submit" class="btn-icon" title="@(item.IsReviewed ? "Belgini olish" : "Ko'rib chiqilgan deb belgilash")">
+                                            @(item.IsReviewed ? "↩️" : "✅")
+                                        </button>
+                                    </form>
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-icon btn-danger-icon" title="O'chirish" onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">🗑️</button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="pagination" style="display:flex; justify-content:center; gap:6px; margin-top:18px;">
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <a asp-action="Index"
+               asp-route-page="@i"
+               asp-route-search="@Model.SearchTerm"
+               asp-route-cameraId="@Model.CameraId"
+               asp-route-userType="@Model.UserType"
+               asp-route-dateFrom="@(Model.DateFrom?.ToString("yyyy-MM-dd"))"
+               asp-route-dateTo="@(Model.DateTo?.ToString("yyyy-MM-dd"))"
+               asp-route-reviewedOnly="@Model.ReviewedOnly"
+               class="btn btn-sm @(i == Model.CurrentPage ? "btn-primary" : "btn-secondary")">@i</a>
+        }
+    </div>
+}

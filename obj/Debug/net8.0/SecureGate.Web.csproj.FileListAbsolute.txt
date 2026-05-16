@@ -155,10 +155,11 @@ C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\stati
 C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\swae.build.ex.cache
-C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\SecureGa.0E8B138F.Up2Date
 C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\SecureGate.Web.dll
 C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\refint\SecureGate.Web.dll
 C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\SecureGate.Web.pdb
 C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\SecureGate.Web.genruntimeconfig.cache
 C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\ref\SecureGate.Web.dll
+C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\SecureGate.Web.sourcelink.json
+C:\Users\abduh\source\repos\SecureGate.Web\SecureGate.Web\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

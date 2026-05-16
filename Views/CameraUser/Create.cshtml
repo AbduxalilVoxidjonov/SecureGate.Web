@@ -1,0 +1,77 @@
+@model CameraUserCreateViewModel
+@using SecureGate.Web.Models
+@{
+    ViewData["Title"] = "Yangi yozuv";
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Kameradan yangi foydalanuvchi qo'shish</h2>
+</div>
+
+<div class="form-card">
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom:14px;"></div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label asp-for="FirstName" class="form-label"></label>
+                <input asp-for="FirstName" class="form-input" />
+                <span asp-validation-for="FirstName" class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="LastName" class="form-label"></label>
+                <input asp-for="LastName" class="form-input" />
+                <span asp-validation-for="LastName" class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="UserType" class="form-label"></label>
+                <select asp-for="UserType" asp-items="Html.GetEnumSelectList<CameraUserType>()" class="form-select"></select>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CameraId" class="form-label"></label>
+                <select asp-for="CameraId" class="form-select">
+                    <option value="">— Kamera tanlang —</option>
+                    @foreach (var c in Model.AvailableCameras)
+                    {
+                        <option value="@c.Id" selected="@(Model.CameraId == c.Id)">@c.Name (@c.CameraCode)</option>
+                    }
+                </select>
+                <span asp-validation-for="CameraId" class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="DetectedAt" class="form-label"></label>
+                <input asp-for="DetectedAt" type="datetime-local" class="form-input" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Confidence" class="form-label"></label>
+                <input asp-for="Confidence" type="number" step="0.1" min="0" max="100" class="form-input" placeholder="0 — 100" />
+                <span asp-validation-for="Confidence" class="form-error"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Photo" class="form-label"></label>
+            <input asp-for="Photo" type="file" accept="image/*" class="form-input" style="padding:8px;" />
+            <p style="font-size:11px; color:var(--text-dim); margin-top:6px;">
+                Kameradan olingan snapshot rasmni yuklang. Maks. 5 MB.
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Note" class="form-label"></label>
+            <textarea asp-for="Note" rows="3" class="form-input" placeholder="Ixtiyoriy izoh..."></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+        </div>
+    </form>
+</div>

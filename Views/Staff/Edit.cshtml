@@ -1,0 +1,219 @@
+@model StaffEditViewModel
+@{
+    ViewData["Title"] = $"Tahrirlash — {Model.FullName}";
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Xodim ma'lumotlarini tahrirlash</h2>
+</div>
+
+<div class="form-card">
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" id="staffEditForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom: 14px;"></div>
+
+        <!-- ===== YUZ RASMI ===== -->
+        <div class="photo-block" style="margin-bottom:24px; border:1px solid var(--border); border-radius:12px; padding:18px;">
+            <h3 style="margin:0 0 4px; font-size:15px;">Yuz rasmi</h3>
+            <p style="margin:0 0 14px; font-size:12px; color:var(--text-muted);">
+                Mavjud rasmni o'zgartirish uchun yangi fayl yuklang yoki veb-kameradan tushiring.
+                Bo'sh qoldirsangiz, joriy rasm saqlanadi.
+            </p>
+
+            @if (!string.IsNullOrEmpty(Model.PhotoPath))
+            {
+                <div style="margin-bottom:14px;">
+                    <p style="font-size:12px; color:var(--text-muted); margin:0 0 6px;">Joriy rasm:</p>
+                    <img src="@Model.PhotoPath" alt="current"
+                         style="max-width:160px; max-height:160px; border-radius:8px; border:2px solid var(--border);" />
+                </div>
+            }
+
+            <div class="photo-tabs" style="display:flex; gap:8px; margin-bottom:14px;">
+                <button type="button" class="btn btn-sm photo-tab active" data-tab="upload">📁 Fayl yuklash</button>
+                <button type="button" class="btn btn-sm photo-tab" data-tab="webcam">📷 Veb-kamera</button>
+            </div>
+
+            <input type="hidden" asp-for="CapturedPhotoBase64" id="capturedPhoto" />
+
+            <div class="photo-pane" id="paneUpload" style="display:block;">
+                <input type="file" asp-for="PhotoFile" accept="image/*" id="photoFileInput"
+                       class="form-input" style="padding:8px;" />
+                <p style="font-size:11px; color:var(--text-dim); margin-top:6px;">
+                    Maks. 5 MB. Formatlar: JPG, PNG, WEBP.
+                </p>
+            </div>
+
+            <div class="photo-pane" id="paneWebcam" style="display:none;">
+                <video id="webcamVideo" autoplay playsinline muted
+                       style="width:320px; height:240px; background:#000; border-radius:8px; display:block;"></video>
+                <canvas id="webcamCanvas" width="320" height="240" style="display:none;"></canvas>
+                <div style="margin-top:10px; display:flex; gap:8px;">
+                    <button type="button" class="btn btn-sm btn-primary" id="btnStartCam">Kamerani yoqish</button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnCapture" disabled>📸 Suratga olish</button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnRetake" style="display:none;">Qaytadan</button>
+                </div>
+            </div>
+
+            <div id="photoPreviewBox" style="display:none; margin-top:14px;">
+                <p style="font-size:12px; color:var(--text-muted); margin:0 0 6px;">Yangi rasm:</p>
+                <img id="photoPreview" src="" alt="preview"
+                     style="max-width:200px; max-height:200px; border-radius:8px; border:2px solid var(--primary);" />
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-input" />
+                <span asp-validation-for="FullName" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Position" class="form-label"></label>
+                <input asp-for="Position" class="form-input" />
+                <span asp-validation-for="Position" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Department" class="form-label"></label>
+                <select asp-for="Department" asp-items="Html.GetEnumSelectList<Department>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Shift" class="form-label"></label>
+                <select asp-for="Shift" asp-items="Html.GetEnumSelectList<ShiftType>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Phone" class="form-label"></label>
+                <input asp-for="Phone" class="form-input" placeholder="+998 XX XXX XX XX" />
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessLevel" class="form-label"></label>
+                <select asp-for="AccessLevel" asp-items="Html.GetEnumSelectList<AccessLevel>()" class="form-select"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<StaffStatus>()" class="form-select"></select>
+            </div>
+        </div>
+
+        <div class="form-switches">
+            <label class="switch-label">
+                <input asp-for="FaceRecognitionEnabled" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+                <span>Yuz tanish (AI)</span>
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const tabs = document.querySelectorAll('.photo-tab');
+    const paneUpload = document.getElementById('paneUpload');
+    const paneWebcam = document.getElementById('paneWebcam');
+    const fileInput = document.getElementById('photoFileInput');
+    const capturedInput = document.getElementById('capturedPhoto');
+    const previewBox = document.getElementById('photoPreviewBox');
+    const preview = document.getElementById('photoPreview');
+
+    const video = document.getElementById('webcamVideo');
+    const canvas = document.getElementById('webcamCanvas');
+    const btnStart = document.getElementById('btnStartCam');
+    const btnCapture = document.getElementById('btnCapture');
+    const btnRetake = document.getElementById('btnRetake');
+    let stream = null;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const which = tab.dataset.tab;
+            paneUpload.style.display = which === 'upload' ? '' : 'none';
+            paneWebcam.style.display = which === 'webcam' ? '' : 'none';
+
+            if (which === 'upload') {
+                capturedInput.value = '';
+                stopStream();
+            } else {
+                fileInput.value = '';
+            }
+            updatePreview();
+        });
+    });
+
+    fileInput.addEventListener('change', () => {
+        capturedInput.value = '';
+        updatePreview();
+    });
+
+    btnStart.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 }, audio: false });
+            video.srcObject = stream;
+            btnStart.disabled = true;
+            btnCapture.disabled = false;
+        } catch (err) {
+            alert('Veb-kamerani ochishda xatolik: ' + err.message);
+        }
+    });
+
+    btnCapture.addEventListener('click', () => {
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        capturedInput.value = dataUrl;
+
+        preview.src = dataUrl;
+        previewBox.style.display = '';
+        btnRetake.style.display = '';
+        btnCapture.disabled = true;
+        stopStream();
+    });
+
+    btnRetake.addEventListener('click', () => {
+        capturedInput.value = '';
+        previewBox.style.display = 'none';
+        btnRetake.style.display = 'none';
+        btnStart.disabled = false;
+    });
+
+    function stopStream() {
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+            video.srcObject = null;
+        }
+    }
+
+    function updatePreview() {
+        const f = fileInput.files && fileInput.files[0];
+        if (f) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                previewBox.style.display = '';
+            };
+            reader.readAsDataURL(f);
+        } else if (!capturedInput.value) {
+            previewBox.style.display = 'none';
+            preview.src = '';
+        }
+    }
+
+    document.getElementById('staffEditForm').addEventListener('submit', stopStream);
+    window.addEventListener('beforeunload', stopStream);
+})();
+</script>
+<style>
+    .photo-tab { background: var(--bg-input); color: var(--text-muted); border: 1px solid var(--border); }
+    .photo-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+</style>
+}

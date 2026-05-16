@@ -1,0 +1,140 @@
+@model ApiSettingsViewModel
+@{
+    ViewData["Title"] = "Sozlamalar — API va Webhook";
+    var createdAt = DateTime.TryParse(Model.ApiKeyCreatedAt, out var dt) ? dt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "—";
+}
+
+<div class="page-header"><h2>Tizim sozlamalari</h2></div>
+
+@await Html.PartialAsync("_Tabs")
+
+<!-- API KEY -->
+<div class="settings-section">
+    <h3>🔑 API kaliti</h3>
+    <p class="section-desc">
+        Tashqi tizimlar (turniketlar, mobil ilova, integratsiyalar) ushbu kalit orqali REST API'ga ulanadi.
+        Har bir so'rovda <code>Authorization: Bearer &lt;kalit&gt;</code> headerini yuborish kerak.
+    </p>
+
+    <div class="api-key-display">
+        <code id="apiKeyText">@Model.ApiKey</code>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="copyApiKey()">📋 Nusxalash</button>
+    </div>
+    <p style="font-size:12px; color:#64748b; margin-top:8px;">
+        Yaratilgan: @createdAt
+    </p>
+
+    <form asp-action="RegenerateApiKey" method="post" style="margin-top:14px;"
+          onsubmit="return confirm('Yangi kalit yaratilsa, eski kalit darhol ishlamay qoladi. Davom etilsinmi?');">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-sm btn-warning">🔄 Yangi kalit yaratish</button>
+    </form>
+</div>
+
+<!-- WEBHOOK -->
+<form asp-action="SaveWebhook" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ApiKey" />
+    <input type="hidden" asp-for="ApiKeyCreatedAt" />
+
+    <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom:14px;"></div>
+
+    <div class="settings-section">
+        <h3>🔗 Webhook</h3>
+        <p class="section-desc">
+            Hodisalar sodir bo'lganda SecureGate sizning serveringizga HTTP POST so'rovini yuboradi.
+            HMAC-SHA256 imzosi <code>X-SecureGate-Signature</code> headerida keladi.
+        </p>
+
+        <div class="toggle-row" style="border-bottom:1px solid #f1f5f9; margin-bottom:14px;">
+            <div class="toggle-row-info">
+                <div class="name">Webhook yoqilgan</div>
+                <div class="desc">O'chirilgan bo'lsa, hech qanday so'rov yuborilmaydi</div>
+            </div>
+            <label class="switch-label">
+                <input asp-for="WebhookEnabled" type="checkbox" class="switch-input" />
+                <span class="switch-slider"></span>
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="WebhookUrl" class="form-label"></label>
+            <input asp-for="WebhookUrl" class="form-input" placeholder="https://your-server.com/webhooks/securegate" />
+            <span asp-validation-for="WebhookUrl" class="form-error"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="WebhookSecret" class="form-label"></label>
+            <input asp-for="WebhookSecret" class="form-input" placeholder="HMAC imzosi uchun maxfiy kalit" />
+        </div>
+
+        <h4 style="margin:18px 0 8px; font-size:14px;">Obuna hodisalari</h4>
+
+        @{
+            var events = new[]
+            {
+                ("SubscribeAccessGranted", "access.granted", "Foydalanuvchi turniketdan muvaffaqiyatli o'tdi"),
+                ("SubscribeAccessDenied", "access.denied", "Kirish rad etildi"),
+                ("SubscribeCameraOffline", "camera.offline", "Kamera bilan aloqa uzildi"),
+                ("SubscribeTurnstileError", "turnstile.error", "Turniket xato qaytardi"),
+                ("SubscribeUserBlocked", "user.blocked", "Foydalanuvchi bloklandi"),
+            };
+        }
+
+        @foreach (var (prop, code, desc) in events)
+        {
+            <div class="toggle-row">
+                <div class="toggle-row-info">
+                    <div class="name"><code>@code</code></div>
+                    <div class="desc">@desc</div>
+                </div>
+                <label class="switch-label">
+                    <input type="checkbox" name="@prop" value="true" class="switch-input"
+                           @(GetBool(prop) ? "checked" : "") />
+                    <span class="switch-slider"></span>
+                </label>
+            </div>
+        }
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Saqlash</button>
+    </div>
+</form>
+
+<!-- Misol -->
+<div class="settings-section">
+    <h3>📦 Webhook payload namunasi</h3>
+    <p class="section-desc">Webhook URL'ga shunday JSON yuboriladi:</p>
+
+    <div class="code-block">{
+  "event": "access.granted",
+  "timestamp": "2026-05-15T08:42:13Z",
+  "data": {
+    "userId": 1024,
+    "fullName": "Alisher Normatov",
+    "turnstileId": 3,
+    "cameraId": 7,
+    "method": "Face",
+    "confidence": 98.5
+  }
+}</div>
+</div>
+
+<script>
+function copyApiKey() {
+    const text = document.getElementById('apiKeyText').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        if (typeof showToast === 'function') showToast('Nusxalandi', 'success');
+        else alert('Nusxalandi');
+    });
+}
+</script>
+
+@functions {
+    bool GetBool(string propName)
+    {
+        var prop = Model.GetType().GetProperty(propName);
+        return prop != null && (bool)(prop.GetValue(Model) ?? false);
+    }
+}

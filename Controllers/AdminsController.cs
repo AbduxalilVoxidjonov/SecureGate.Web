@@ -54,22 +54,50 @@ namespace SecureGate.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new AdminCreateViewModel());
+            var model = new AdminCreateViewModel
+            {
+                AvailableStaff = await GetAvailableStaffAsync()
+            };
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AdminCreateViewModel model)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                model.AvailableStaff = await GetAvailableStaffAsync();
+                return View(model);
+            }
+
+            var staff = await _db.StaffMembers.FindAsync(model.StaffId);
+            if (staff == null)
+            {
+                ModelState.AddModelError(nameof(model.StaffId), "Tanlangan xodim topilmadi.");
+                model.AvailableStaff = await GetAvailableStaffAsync();
+                return View(model);
+            }
+
+            // Bu xodim allaqachon admin sifatida ro'yxatdan o'tganmi?
+            var alreadyLinked = await _db.Users.AnyAsync(u => u.StaffId == staff.Id);
+            if (alreadyLinked)
+            {
+                ModelState.AddModelError(nameof(model.StaffId), "Bu xodim uchun admin akkaunt allaqachon mavjud.");
+                model.AvailableStaff = await GetAvailableStaffAsync();
+                return View(model);
+            }
+
+            var generatedEmail = $"staff-{staff.Id}@securegate.local";
 
             var user = new AppUser
             {
-                UserName = model.Email,
-                Email = model.Email,
-                FullName = model.FullName,
+                UserName = generatedEmail,
+                Email = generatedEmail,
+                FullName = staff.FullName,
+                StaffId = staff.Id,
                 EmailConfirmed = true,
                 IsActive = true
             };
@@ -79,6 +107,7 @@ namespace SecureGate.Web.Controllers
             {
                 foreach (var err in result.Errors)
                     ModelState.AddModelError(string.Empty, err.Description);
+                model.AvailableStaff = await GetAvailableStaffAsync();
                 return View(model);
             }
 
@@ -87,8 +116,21 @@ namespace SecureGate.Web.Controllers
             if (model.SelectedPermissions.Any())
                 await _permissionService.SetPermissionsAsync(user.Id, model.SelectedPermissions);
 
-            TempData["Success"] = "Admin muvaffaqiyatli yaratildi.";
+            TempData["Success"] = $"Admin yaratildi. Login: {generatedEmail}";
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<List<Models.Staff>> GetAvailableStaffAsync()
+        {
+            var linkedIds = await _db.Users
+                .Where(u => u.StaffId != null)
+                .Select(u => u.StaffId!.Value)
+                .ToListAsync();
+
+            return await _db.StaffMembers
+                .Where(s => !linkedIds.Contains(s.Id))
+                .OrderBy(s => s.FullName)
+                .ToListAsync();
         }
 
         [HttpGet]

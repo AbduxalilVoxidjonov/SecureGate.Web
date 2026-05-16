@@ -1,0 +1,171 @@
+@model CameraUserStatsViewModel
+@using SecureGate.Web.Models
+@{
+    ViewData["Title"] = "Kamera foydalanuvchilari — Statistika";
+
+    int maxHour = Model.ByHour.Any() ? Model.ByHour.Max(h => h.Count) : 1;
+    int maxCamera = Model.ByCamera.Any() ? Model.ByCamera.Max(c => c.Count) : 1;
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>Statistika</h2>
+</div>
+
+<form method="get" class="filter-bar" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+    <div>
+        <label class="form-label">Sanadan</label>
+        <input type="date" name="from" value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))" class="form-input" />
+    </div>
+    <div>
+        <label class="form-label">Sanagacha</label>
+        <input type="date" name="to" value="@(Model.DateTo?.ToString("yyyy-MM-dd"))" class="form-input" />
+    </div>
+    <div style="display:flex; align-items:flex-end;">
+        <button type="submit" class="btn btn-primary">🔍 Filtrlash</button>
+        <a asp-action="Stats" class="btn btn-secondary" style="margin-left:6px;">Tozalash</a>
+    </div>
+</form>
+
+<!-- Yuqori kartochkalar -->
+<div class="stats-grid" style="display:grid; grid-template-columns: repeat(6, 1fr); gap:14px; margin-bottom:20px;">
+    <div class="stat-card">
+        <div class="stat-card-title">Jami (filtrlangan)</div>
+        <div class="stat-card-value">@(Model.ByUserType.Sum(u => u.Count))</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-title">Bugun</div>
+        <div class="stat-card-value">@Model.TotalToday</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-title">Bu hafta</div>
+        <div class="stat-card-value">@Model.TotalThisWeek</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-title">Bu oy</div>
+        <div class="stat-card-value">@Model.TotalThisMonth</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-title">Noma'lum</div>
+        <div class="stat-card-value" style="color: var(--danger);">@Model.UnknownCount</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-title">Ko'rib chiqilgan</div>
+        <div class="stat-card-value" style="color: var(--success);">@Model.ReviewedCount</div>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <!-- Tur bo'yicha -->
+    <div class="detail-card">
+        <h4>Turi bo'yicha</h4>
+        @if (!Model.ByUserType.Any())
+        {
+            <p class="text-muted">Ma'lumot yo'q</p>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead>
+                    <tr><th>Tur</th><th style="text-align:right;">Soni</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model.ByUserType.OrderByDescending(t => t.Count))
+                    {
+                        <tr>
+                            <td>
+                                <span class="access-badge access-@t.Type.ToString().ToLower()">@t.Type.GetDisplayName()</span>
+                            </td>
+                            <td style="text-align:right;"><strong>@t.Count</strong></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <!-- Kamera bo'yicha -->
+    <div class="detail-card">
+        <h4>Kameralar bo'yicha</h4>
+        @if (!Model.ByCamera.Any())
+        {
+            <p class="text-muted">Ma'lumot yo'q</p>
+        }
+        else
+        {
+            foreach (var c in Model.ByCamera)
+            {
+                int pct = (int)((double)c.Count / maxCamera * 100);
+                <div style="margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+                        <span>@c.CameraName <code style="font-size:11px;">@c.CameraCode</code></span>
+                        <strong>@c.Count</strong>
+                    </div>
+                    <div style="background:var(--bg-input); height:6px; border-radius:3px;">
+                        <div style="background:var(--primary); height:6px; border-radius:3px; width:@pct%;"></div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Soatlik faollik -->
+    <div class="detail-card" style="grid-column: 1 / -1;">
+        <h4>Soatlik faollik (00 — 23)</h4>
+        @if (!Model.ByHour.Any())
+        {
+            <p class="text-muted">Ma'lumot yo'q</p>
+        }
+        else
+        {
+            <div style="display:flex; align-items:flex-end; gap:4px; height:140px; padding:0 4px;">
+                @for (int h = 0; h < 24; h++)
+                {
+                    var stat = Model.ByHour.FirstOrDefault(s => s.Hour == h);
+                    int count = stat?.Count ?? 0;
+                    int height = maxHour > 0 ? (int)((double)count / maxHour * 100) : 0;
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                        <div title="@h:00 — @count yozuv"
+                             style="width:100%; background:linear-gradient(180deg, var(--primary) 0%, #93c5fd 100%); height:@(height)%; min-height:2px; border-radius:3px 3px 0 0;"></div>
+                        <span style="font-size:10px; color:var(--text-muted);">@h.ToString("D2")</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Top kishilar -->
+    <div class="detail-card" style="grid-column: 1 / -1;">
+        <h4>Top-10 eng ko'p aniqlangan kishilar</h4>
+        @if (!Model.TopPeople.Any())
+        {
+            <p class="text-muted">Ma'lumot yo'q</p>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Ism familiya</th>
+                        <th>Aniqlanishlar soni</th>
+                        <th>Oxirgi ko'rilgan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int rank = 1; }
+                    @foreach (var p in Model.TopPeople)
+                    {
+                        <tr>
+                            <td><strong>@rank</strong></td>
+                            <td>@p.FullName</td>
+                            <td>@p.DetectionCount</td>
+                            <td>@p.LastSeen.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        </tr>
+                        rank++;
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

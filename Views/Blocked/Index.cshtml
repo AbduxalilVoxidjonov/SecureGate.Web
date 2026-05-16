@@ -15,9 +15,11 @@
             <thead>
                 <tr>
                     <th>F.I.O</th>
-                    <th>Guruh</th>
                     <th>Sabab</th>
+                    <th>Sabab turi</th>
                     <th>Bloklangan sana</th>
+                    <th>Bloklagan</th>
+                    <th>Muddat</th>
                     <th>Amallar</th>
                 </tr>
             </thead>
@@ -34,13 +36,19 @@
                                 </div>
                             </div>
                         </td>
-                                                <td>@(s.BlockedUser?.Reason ?? "Noma'lum")</td>
+                        <td>@(s.BlockedUser?.Reason ?? "Noma'lum")</td>
+                        <td>@(s.BlockedUser?.ReasonType.GetDisplayName() ?? "—")</td>
                         <td>@(s.BlockedUser?.BlockedAt.ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
+                        <td>@(s.BlockedUser?.BlockedBy ?? "—")</td>
+                        <td>@(s.BlockedUser?.Duration ?? "Muddatsiz")</td>
                         <td>
-                            <form asp-controller="Student" asp-action="Unblock" asp-route-id="@s.Id" method="post" style="display:inline">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-success">🔓 Blokdan chiqarish</button>
-                            </form>
+                            <div class="action-btns">
+                                <a asp-controller="Users" asp-action="Details" asp-route-id="@s.Id" class="btn-icon" title="Batafsil">👁️</a>
+                                <form asp-controller="Users" asp-action="Unblock" asp-route-id="@s.Id" method="post" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-success" title="Blokdan chiqarish">🔓 Chiqarish</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }

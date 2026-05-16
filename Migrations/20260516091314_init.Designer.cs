@@ -12,8 +12,8 @@ using SecureGate.Web.Data;
 namespace SecureGate.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260515051258_first")]
-    partial class first
+    [Migration("20260516091314_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -169,6 +169,9 @@ namespace SecureGate.Web.Migrations
                     b.Property<int?>("CameraId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CapturedImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Details")
                         .HasColumnType("nvarchar(max)");
 
@@ -305,6 +308,9 @@ namespace SecureGate.Web.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("StaffId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -321,6 +327,8 @@ namespace SecureGate.Web.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("StaffId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -483,6 +491,72 @@ namespace SecureGate.Web.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CameraGroups");
+                });
+
+            modelBuilder.Entity("SecureGate.Web.Models.CameraUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CameraId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CapturedImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Confidence")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("DetectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsReviewed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("StaffId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TeacherId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CameraId");
+
+                    b.HasIndex("DetectedAt");
+
+                    b.HasIndex("StaffId");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("TeacherId");
+
+                    b.HasIndex("FirstName", "LastName");
+
+                    b.ToTable("CameraUsers");
                 });
 
             modelBuilder.Entity("SecureGate.Web.Models.FaceData", b =>
@@ -936,6 +1010,15 @@ namespace SecureGate.Web.Migrations
                     b.Navigation("Turnstile");
                 });
 
+            modelBuilder.Entity("SecureGate.Web.Models.Auth.AppUser", b =>
+                {
+                    b.HasOne("SecureGate.Web.Models.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId");
+
+                    b.Navigation("Staff");
+                });
+
             modelBuilder.Entity("SecureGate.Web.Models.Auth.UserPermission", b =>
                 {
                     b.HasOne("SecureGate.Web.Models.Auth.AppUser", "User")
@@ -976,6 +1059,37 @@ namespace SecureGate.Web.Migrations
                         .HasForeignKey("CameraGroupId");
 
                     b.Navigation("CameraGroup");
+                });
+
+            modelBuilder.Entity("SecureGate.Web.Models.CameraUser", b =>
+                {
+                    b.HasOne("SecureGate.Web.Models.Camera", "Camera")
+                        .WithMany()
+                        .HasForeignKey("CameraId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SecureGate.Web.Models.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SecureGate.Web.Models.Users", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SecureGate.Web.Models.Teacher", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Camera");
+
+                    b.Navigation("Staff");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("SecureGate.Web.Models.FaceData", b =>

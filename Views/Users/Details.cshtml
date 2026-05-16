@@ -14,7 +14,15 @@
 <div class="detail-grid">
     <div class="detail-card">
         <div class="detail-avatar">
-            <div class="avatar-lg">@Model.Initials</div>
+            @if (!string.IsNullOrEmpty(Model.PhotoPath))
+            {
+                <img src="@Model.PhotoPath" alt="@Model.FullName"
+                     style="width: 160px; height: 160px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); margin-bottom: 12px;" />
+            }
+            else
+            {
+                <div class="avatar-lg">@Model.Initials</div>
+            }
             <h3>@Model.FullName</h3>
             <span class="text-muted">ID: #@Model.StudentId</span>
         </div>
@@ -100,4 +108,8 @@
             <button type="submit" class="btn btn-success">🔓 Blokdan chiqarish</button>
         </form>
     }
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger" onclick="return confirm('@Model.FullName foydalanuvchini butunlay o\'chirishni tasdiqlaysizmi?')">🗑️ O'chirish</button>
+    </form>
 </div>

@@ -1,0 +1,121 @@
+@model CameraUser
+@using SecureGate.Web.Models
+@using SecureGate.Web.Models.Auth
+@inject SecureGate.Web.Services.Interfaces.IPermissionService PermissionService
+@{
+    ViewData["Title"] = Model.FullName;
+    bool canManage = User.HasPermission(Permission.CameraUserManage, PermissionService);
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="btn btn-back">← Orqaga</a>
+    <h2>@Model.FullName</h2>
+    @if (Model.IsReviewed)
+    {
+        <span class="status-badge status-active">Ko'rib chiqilgan</span>
+    }
+    else
+    {
+        <span class="status-badge status-archived">Yangi</span>
+    }
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <h4>Olingan rasm</h4>
+        @if (!string.IsNullOrEmpty(Model.CapturedImagePath))
+        {
+            <img src="@Model.CapturedImagePath" alt="@Model.FullName"
+                 style="width:100%; max-width:280px; border-radius:8px; border:2px solid var(--border); object-fit:cover;" />
+        }
+        else
+        {
+            <div style="padding:32px; text-align:center; background:var(--bg-input); border-radius:8px; border:1px dashed var(--border);">
+                <span style="font-size:32px; opacity:0.4;">📷</span>
+                <p class="text-muted" style="margin-top:8px;">Rasm yo'q</p>
+            </div>
+        }
+    </div>
+
+    <div class="detail-card">
+        <h4>Asosiy ma'lumotlar</h4>
+        <div class="detail-row">
+            <span class="detail-label">Ism familiya:</span>
+            <span><strong>@Model.FullName</strong></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Tur:</span>
+            <span class="access-badge access-@Model.UserType.ToString().ToLower()">@Model.UserType.GetDisplayName()</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Aniqlangan vaqt:</span>
+            <span>@Model.DetectedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss")</span>
+        </div>
+        @if (Model.Confidence.HasValue)
+        {
+            <div class="detail-row">
+                <span class="detail-label">Aniqlik:</span>
+                <span>@Model.Confidence.Value.ToString("F1")%</span>
+            </div>
+        }
+    </div>
+
+    <div class="detail-card">
+        <h4>Kamera va bog'liqlik</h4>
+        <div class="detail-row">
+            <span class="detail-label">Kamera:</span>
+            <span>@(Model.Camera?.Name ?? "—")</span>
+        </div>
+        @if (Model.Camera != null)
+        {
+            <div class="detail-row">
+                <span class="detail-label">Kamera kodi:</span>
+                <span><code>@Model.Camera.CameraCode</code></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Joylashuv:</span>
+                <span>@(Model.Camera.IpAddress ?? "—")</span>
+            </div>
+        }
+        @if (Model.Student != null)
+        {
+            <div class="detail-row">
+                <span class="detail-label">Bog'langan profil:</span>
+                <a asp-controller="Users" asp-action="Details" asp-route-id="@Model.Student.Id">O'quvchi #@Model.Student.StudentId →</a>
+            </div>
+        }
+        else if (Model.Staff != null)
+        {
+            <div class="detail-row">
+                <span class="detail-label">Bog'langan profil:</span>
+                <a asp-controller="Staff" asp-action="Details" asp-route-id="@Model.Staff.Id">@Model.Staff.FullName →</a>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Note))
+    {
+        <div class="detail-card" style="grid-column: 1 / -1;">
+            <h4>Izoh</h4>
+            <p style="white-space:pre-wrap; margin:0;">@Model.Note</p>
+        </div>
+    }
+</div>
+
+@if (canManage)
+{
+    <div class="form-actions">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">✏️ Tahrirlash</a>
+        <form asp-action="ToggleReviewed" asp-route-id="@Model.Id" method="post" style="display:inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="reviewed" value="@((!Model.IsReviewed).ToString().ToLower())" />
+            <button type="submit" class="btn btn-secondary">
+                @(Model.IsReviewed ? "↩️ Belgini olish" : "✅ Ko'rib chiqilgan deb belgilash")
+            </button>
+        </form>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Yozuvni o\'chirishni tasdiqlaysizmi?')">🗑️ O'chirish</button>
+        </form>
+    </div>
+}

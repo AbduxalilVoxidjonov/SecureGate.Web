@@ -21,6 +21,9 @@
             <input type="text" placeholder="Qidirish..." class="search-input" id="globalSearch" />
         </div>
         <div class="topbar-actions">
+            <button type="button" class="theme-toggle" id="themeToggle" title="Mavzuni o'zgartirish" aria-label="Toggle theme">
+                <span id="themeToggleIcon">🌙</span>
+            </button>
             <button class="topbar-btn" id="alertBtn" title="Ogohlantirishlar">
                 🔔 <span class="badge" id="alertBadge">0</span>
             </button>
@@ -33,7 +36,8 @@
                 <form asp-controller="Account" asp-action="Logout" method="post" style="margin-left:12px;">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="topbar-btn" title="Chiqish" style="background:transparent; border:none; cursor:pointer; font-size:18px;">
-                        ⎋
+                        Chiqish
+
                     </button>
                 </form>
             </div>

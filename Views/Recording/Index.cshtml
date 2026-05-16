@@ -36,7 +36,9 @@
                     <td>@cam.Quality.GetDisplayName()</td>
                     <td><span class="toggle-indicator @(cam.ContinuousRecording ? "on" : "off")">@(cam.ContinuousRecording ? "✓" : "✕")</span></td>
                     <td><span class="toggle-indicator @(cam.MotionDetection ? "on" : "off")">@(cam.MotionDetection ? "✓" : "✕")</span></td>
-                    <td><button class="btn btn-sm btn-secondary" disabled>📂 Arxivni ko'rish</button></td>
+                    <td>
+                        <a asp-action="Camera" asp-route-id="@cam.Id" class="btn btn-sm btn-primary">📂 Arxivni ko'rish</a>
+                    </td>
                 </tr>
             }
         </tbody>

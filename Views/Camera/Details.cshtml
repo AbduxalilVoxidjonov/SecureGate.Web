@@ -13,21 +13,73 @@
 
 <div class="detail-grid">
     <div class="detail-card card-wide">
-        <div class="camera-preview camera-preview-lg">
-            <div class="camera-placeholder">
-                @if (Model.Status == CameraStatus.Online)
-                {
-                    <span class="camera-live-badge">● LIVE</span>
-                    <span style="font-size: 48px">📹</span>
-                    <span>@Model.CameraCode — @Model.Quality.GetDisplayName()</span>
-                }
-                else
-                {
+        @{
+            var isHttpStream = !string.IsNullOrEmpty(Model.StreamUrl)
+                && (Model.StreamUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                    || Model.StreamUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
+            var isRtspStream = !string.IsNullOrEmpty(Model.StreamUrl)
+                && Model.StreamUrl.StartsWith("rtsp://", StringComparison.OrdinalIgnoreCase);
+        }
+        <div class="camera-preview camera-preview-lg" style="position:relative; background:#000; min-height:360px; overflow:hidden;">
+            @if (Model.Status == CameraStatus.Online && isHttpStream)
+            {
+                <!-- MJPEG/HTTP stream — brauzer to'g'ridan-to'g'ri ko'rsata oladi -->
+                <div id="zoomViewport" style="width:100%; height:auto; max-height:480px; overflow:hidden; position:relative; cursor:grab;">
+                    <img id="liveStream" src="@Model.StreamUrl" alt="@Model.Name"
+                         style="width:100%; height:auto; max-height:480px; object-fit:contain; display:block; transform-origin:0 0; transition:transform 0.1s ease-out; user-select:none; -webkit-user-drag:none;"
+                         draggable="false"
+                         onerror="this.style.display='none'; document.getElementById('streamError').style.display='flex';" />
+                </div>
+                <span class="camera-live-badge" style="position:absolute; top:12px; left:12px; z-index:2;">● LIVE</span>
+
+                <!-- Zoom boshqaruv tugmalari -->
+                <div id="zoomControls" style="position:absolute; bottom:12px; right:12px; display:flex; flex-direction:column; gap:6px; z-index:3;">
+                    <button type="button" id="zoomInBtn" title="Yaqinlashtirish (+)" style="width:36px; height:36px; border:none; border-radius:6px; background:rgba(0,0,0,0.65); color:#fff; font-size:20px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">+</button>
+                    <button type="button" id="zoomOutBtn" title="Uzoqlashtirish (−)" style="width:36px; height:36px; border:none; border-radius:6px; background:rgba(0,0,0,0.65); color:#fff; font-size:20px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">−</button>
+                    <button type="button" id="zoomResetBtn" title="Tiklash" style="width:36px; height:36px; border:none; border-radius:6px; background:rgba(0,0,0,0.65); color:#fff; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;">⟳</button>
+                </div>
+                <div id="zoomLevel" style="position:absolute; bottom:12px; left:12px; background:rgba(0,0,0,0.65); color:#fff; padding:4px 10px; border-radius:6px; font-size:12px; z-index:3;">100%</div>
+
+                <div id="streamError" class="camera-placeholder" style="display:none;">
+                    <span style="font-size:48px;">⚠️</span>
+                    <span>Stream ulanishi yo'q</span>
+                    <button class="btn btn-sm btn-secondary" onclick="document.getElementById('liveStream').src=document.getElementById('liveStream').src; this.parentElement.style.display='none'; document.getElementById('liveStream').style.display='block';">Qayta urinish</button>
+                </div>
+            }
+            else if (Model.Status == CameraStatus.Online && isRtspStream)
+            {
+                <div class="camera-placeholder">
+                    <span style="font-size:48px;">📹</span>
+                    <strong>RTSP stream</strong>
+                    <p style="font-size:13px; color:var(--text-muted); max-width:400px; text-align:center;">
+                        Brauzer RTSP'ni to'g'ridan-to'g'ri ko'rsata olmaydi.
+                        Live preview uchun HTTP MJPEG URL'ni "Stream URL" maydoniga kiriting
+                        (IP Webcam: <code>http://IP:8080/video</code>).
+                    </p>
+                </div>
+            }
+            else if (Model.Status == CameraStatus.Online)
+            {
+                <div class="camera-placeholder">
+                    <span style="font-size:48px;">📹</span>
+                    <strong>Stream URL kiritilmagan</strong>
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-secondary">Sozlash</a>
+                </div>
+            }
+            else
+            {
+                <div class="camera-placeholder">
                     <span class="camera-offline-badge">OFLAYN</span>
-                    <span style="font-size: 48px">📹</span>
-                }
-            </div>
+                    <span style="font-size:48px;">📹</span>
+                </div>
+            }
         </div>
+        @if (isHttpStream)
+        {
+            <p style="font-size:11px; color:var(--text-dim); margin-top:6px;">
+                Stream: <code>@Model.StreamUrl</code>
+            </p>
+        }
     </div>
 
     <div class="detail-card">
@@ -56,3 +108,104 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var img = document.getElementById('liveStream');
+            var viewport = document.getElementById('zoomViewport');
+            if (!img || !viewport) return;
+
+            var scale = 1;
+            var minScale = 1;
+            var maxScale = 5;
+            var step = 0.25;
+            var posX = 0;
+            var posY = 0;
+            var isDragging = false;
+            var startX = 0;
+            var startY = 0;
+
+            var levelLabel = document.getElementById('zoomLevel');
+
+            function clampPosition() {
+                var vw = viewport.clientWidth;
+                var vh = viewport.clientHeight;
+                var iw = img.clientWidth * scale;
+                var ih = img.clientHeight * scale;
+                var minX = Math.min(0, vw - iw);
+                var minY = Math.min(0, vh - ih);
+                if (posX > 0) posX = 0;
+                if (posY > 0) posY = 0;
+                if (posX < minX) posX = minX;
+                if (posY < minY) posY = minY;
+            }
+
+            function applyTransform() {
+                clampPosition();
+                img.style.transform = 'translate(' + posX + 'px, ' + posY + 'px) scale(' + scale + ')';
+                if (levelLabel) levelLabel.textContent = Math.round(scale * 100) + '%';
+                viewport.style.cursor = scale > 1 ? 'grab' : 'default';
+            }
+
+            function zoomAt(newScale, cx, cy) {
+                newScale = Math.max(minScale, Math.min(maxScale, newScale));
+                if (newScale === scale) return;
+                var rect = viewport.getBoundingClientRect();
+                var px = (cx !== undefined ? cx - rect.left : rect.width / 2);
+                var py = (cy !== undefined ? cy - rect.top : rect.height / 2);
+                var ratio = newScale / scale;
+                posX = px - (px - posX) * ratio;
+                posY = py - (py - posY) * ratio;
+                scale = newScale;
+                if (scale === 1) { posX = 0; posY = 0; }
+                applyTransform();
+            }
+
+            document.getElementById('zoomInBtn').addEventListener('click', function () {
+                zoomAt(scale + step);
+            });
+            document.getElementById('zoomOutBtn').addEventListener('click', function () {
+                zoomAt(scale - step);
+            });
+            document.getElementById('zoomResetBtn').addEventListener('click', function () {
+                scale = 1; posX = 0; posY = 0; applyTransform();
+            });
+
+            viewport.addEventListener('wheel', function (e) {
+                e.preventDefault();
+                var delta = e.deltaY < 0 ? step : -step;
+                zoomAt(scale + delta, e.clientX, e.clientY);
+            }, { passive: false });
+
+            viewport.addEventListener('mousedown', function (e) {
+                if (scale <= 1) return;
+                isDragging = true;
+                startX = e.clientX - posX;
+                startY = e.clientY - posY;
+                viewport.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+            window.addEventListener('mousemove', function (e) {
+                if (!isDragging) return;
+                posX = e.clientX - startX;
+                posY = e.clientY - startY;
+                applyTransform();
+            });
+            window.addEventListener('mouseup', function () {
+                if (isDragging) {
+                    isDragging = false;
+                    viewport.style.cursor = scale > 1 ? 'grab' : 'default';
+                }
+            });
+
+            viewport.addEventListener('dblclick', function (e) {
+                if (scale > 1) {
+                    scale = 1; posX = 0; posY = 0; applyTransform();
+                } else {
+                    zoomAt(2, e.clientX, e.clientY);
+                }
+            });
+        })();
+    </script>
+}

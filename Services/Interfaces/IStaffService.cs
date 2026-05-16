@@ -8,6 +8,7 @@ namespace SecureGate.Web.Services.Interfaces
         Task<List<Staff>> GetAllAsync();
         Task<Staff?> GetByIdAsync(int id);
         Task<Staff> CreateAsync(StaffCreateViewModel model);
+        Task<bool> UpdateAsync(StaffEditViewModel model);
         Task DeleteAsync(int id);
     }
 }

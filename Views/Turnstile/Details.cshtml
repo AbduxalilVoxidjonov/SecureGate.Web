@@ -44,7 +44,9 @@
 
     <div class="detail-card card-wide">
         <h4>Soatlik o'tishlar</h4>
-        <canvas id="turnstileChart" height="200"></canvas>
+        <div style="width:100%; height:180px;">
+            <canvas id="turnstileChart"></canvas>
+        </div>
     </div>
 
     <div class="detail-card card-wide">
@@ -97,7 +99,16 @@
                 labels: Array.from({length:24}, (_,i) => `${i}:00`),
                 datasets: [{ label: "O'tishlar", data: hourlyData, borderColor: '#3b82f6', backgroundColor: '#3b82f620', fill: true, tension: 0.4 }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+                    x: { ticks: { font: { size: 10 }, maxRotation: 0 } }
+                },
+                elements: { point: { radius: 2 }, line: { borderWidth: 2 } }
+            }
         });
     </script>
 }

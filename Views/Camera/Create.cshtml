@@ -11,6 +11,7 @@
 <div class="form-card">
     <form asp-action="Create" method="post">
         @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom:14px;"></div>
         <div class="form-grid">
             <div class="form-group">
                 <label asp-for="Name" class="form-label"></label>
@@ -32,14 +33,17 @@
             <div class="form-group">
                 <label asp-for="StreamUrl" class="form-label"></label>
                 <input asp-for="StreamUrl" class="form-input" placeholder="rtsp://192.168.1.10:554/stream" />
+                <span asp-validation-for="StreamUrl" class="form-error"></span>
             </div>
             <div class="form-group">
                 <label asp-for="IpAddress" class="form-label"></label>
                 <input asp-for="IpAddress" class="form-input" placeholder="192.168.1.XX" />
+                <span asp-validation-for="IpAddress" class="form-error"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Port" class="form-label"></label>
-                <input asp-for="Port" type="number" class="form-input" />
+                <input asp-for="Port" type="number" min="1" max="65535" class="form-input" />
+                <span asp-validation-for="Port" class="form-error"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Username" class="form-label"></label>
@@ -47,7 +51,10 @@
             </div>
             <div class="form-group">
                 <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" type="password" class="form-input" />
+                <input asp-for="Password" type="password" class="form-input" autocomplete="new-password" />
+                <p style="font-size:11px; color:var(--text-dim); margin-top:4px;">
+                    🔒 Parol DataProtection orqali shifrlanib saqlanadi.
+                </p>
             </div>
             <div class="form-group">
                 <label asp-for="CameraGroupId" class="form-label"></label>
@@ -76,9 +83,61 @@
             </label>
         </div>
 
+        <!-- Real-time ulanish testi -->
+        <div style="margin: 18px 0; padding: 14px; background: var(--bg-input); border-radius: 8px; border: 1px dashed var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                <div>
+                    <strong>Ulanishni tekshirish</strong>
+                    <p style="font-size:12px; color:var(--text-muted); margin:4px 0 0;">
+                        Saqlashdan oldin IP va Port orqali kameraga TCP ulanishni sinab ko'rasiz.
+                    </p>
+                </div>
+                <button type="button" class="btn btn-secondary" id="testConnBtn">🔌 Test ulanish</button>
+            </div>
+            <div id="testResult" style="margin-top:10px; font-size:13px;"></div>
+        </div>
+
         <div class="form-actions">
             <a asp-action="Index" class="btn btn-secondary">Bekor qilish</a>
             <button type="submit" class="btn btn-primary">Saqlash</button>
         </div>
     </form>
 </div>
+
+@section Scripts {
+<script>
+    document.getElementById('testConnBtn').addEventListener('click', async () => {
+        const ip = document.querySelector('input[name="IpAddress"]').value.trim();
+        const port = parseInt(document.querySelector('input[name="Port"]').value, 10);
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const result = document.getElementById('testResult');
+        const btn = document.getElementById('testConnBtn');
+
+        if (!ip) {
+            result.innerHTML = '<span style="color:var(--danger);">IP manzilni kiriting</span>';
+            return;
+        }
+
+        btn.disabled = true;
+        result.innerHTML = '<span style="color:var(--text-muted);">⏳ Tekshirilmoqda...</span>';
+
+        try {
+            const res = await fetch('/Camera/TestConnection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: `ip=${encodeURIComponent(ip)}&port=${port}`
+            });
+            const data = await res.json();
+            const color = data.success ? 'var(--success, #16a34a)' : 'var(--danger, #dc2626)';
+            result.innerHTML = `<span style="color:${color};">${data.message}</span>`;
+        } catch (ex) {
+            result.innerHTML = '<span style="color:var(--danger);">Server xatosi</span>';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+</script>
+}

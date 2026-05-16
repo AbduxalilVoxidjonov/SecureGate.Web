@@ -5,6 +5,8 @@ namespace SecureGate.Web.Data
 {
     public static class IdentitySeeder
     {
+        // Har bir deployment o'zining default SuperAdmin akkauntiga ega bo'ladi.
+        // Birinchi kirishdan keyin parolni almashtirish tavsiya etiladi.
         public const string DefaultSuperAdminEmail = "superadmin@securegate.local";
         public const string DefaultSuperAdminPassword = "ChangeMe123!";
 
@@ -19,7 +21,7 @@ namespace SecureGate.Web.Data
                 }
             }
 
-            // 2) Default SuperAdmin akkaunt
+            // 2) Default SuperAdmin akkaunti
             var superAdmin = await userManager.FindByEmailAsync(DefaultSuperAdminEmail);
             if (superAdmin == null)
             {
